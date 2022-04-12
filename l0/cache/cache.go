@@ -3,17 +3,6 @@ package cache
 import (
 	"Work/database"
 	"Work/model"
-	"encoding/json"
-	"github.com/nats-io/stan.go"
-	"log"
-	"time"
-)
-
-const (
-	clusterID = "test-cluster"
-	clientID  = "restaurant-service"
-	channel   = "test"
-	durableID = "restaurant-service-durable"
 )
 
 const (
@@ -57,40 +46,4 @@ func (c *Cache) Get(id string) (string, string, bool) {
 		return "Not Found", "Not Found", false
 	}
 	return item.ItemFirstName, item.ItemLastName, true
-}
-
-func (c *Cache) OnAddFromNats() {
-
-	sc, err := stan.Connect(
-		clusterID,
-		clientID,
-		stan.NatsURL(stan.DefaultNatsURL))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	aw, _ := time.ParseDuration("60s")
-	sc.Subscribe(channel, func(msg *stan.Msg) {
-
-		msg.Ack()
-
-		var data model.Product
-
-		err := json.Unmarshal(msg.Data, &data)
-
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		log.Printf("Subscribed message from clientID - %s for Order: %+v\n", clientID, *data.FirstName)
-		c.Set(data)
-		c.db.Add(data)
-
-	}, stan.DurableName(durableID),
-		stan.MaxInflight(25),
-		stan.SetManualAckMode(),
-		stan.AckWait(aw),
-	)
 }

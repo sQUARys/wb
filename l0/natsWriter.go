@@ -27,8 +27,8 @@ type Person struct {
 func main() {
 
 	data := Person{
-		Id:        "101",
-		FirstName: "Oleg",
+		Id:        "103",
+		FirstName: "UEED<",
 		LastName:  "Tinkoff",
 	}
 

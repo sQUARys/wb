@@ -4,9 +4,12 @@ import (
 	"Work/cache"
 	"Work/database"
 	"Work/model"
+	"encoding/json"
+	"github.com/nats-io/stan.go"
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
 const (
@@ -28,6 +31,33 @@ func New(database database.Database, cache cache.Cache) *Controller {
 	return &ctr
 }
 
+func (сtr *Controller) NatsReading(sc stan.Conn, channel string, durableID string) {
+
+	aw, _ := time.ParseDuration("60s")
+	sc.Subscribe(channel, func(msg *stan.Msg) {
+
+		msg.Ack()
+
+		var data model.Product
+
+		err := json.Unmarshal(msg.Data, &data)
+
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		log.Printf("Subscribed message from clientID for Order: %+v\n", *data.FirstName)
+		сtr.cache.Set(data)
+		сtr.database.Add(data)
+
+	}, stan.DurableName(durableID),
+		stan.MaxInflight(25),
+		stan.SetManualAckMode(),
+		stan.AckWait(aw),
+	)
+}
+
 func (c *Controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if isFirstCompile {
@@ -47,7 +77,7 @@ func (c *Controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		c.cache.OnAddFromNats()
+		//c.cache.OnAddFromNats()
 
 		p := model.Product{}
 
