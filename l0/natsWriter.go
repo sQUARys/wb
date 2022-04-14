@@ -22,15 +22,15 @@ var (
 func main() {
 
 	data := model.Request{}
-	data.Id = 3
-	data.Delivery.Name = "Roma"
-	data.Delivery.City = "Kaliningrad"
+	data.Id = 5
+	data.Delivery.Name = "Alex"
+	data.Delivery.City = "Saint-Petersburg"
 	data.Delivery.Phone = "8901234932"
-	data.Delivery.Address = "ul. Bolshaya"
+	data.Delivery.Address = "ul. Karpovki"
 
-	data.Thing.ItemName = "Cap"
-	data.Thing.Price = 50
-	data.Thing.Brand = "Nike"
+	data.Thing.ItemName = "Socks"
+	data.Thing.Price = 5
+	data.Thing.Brand = "Adidas"
 
 	var jsonData []byte
 	jsonData, err := json.Marshal(data)
