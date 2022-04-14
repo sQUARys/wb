@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 const (
@@ -32,30 +31,17 @@ func New(database database.Database, cache cache.Cache) *Controller {
 	return &ctr
 }
 
-func (сtr *Controller) NatsReading(sc stan.Conn, channel string, durableID string) {
-
-	aw, _ := time.ParseDuration("300s")
-	sc.Subscribe(channel, func(msg *stan.Msg) {
-
-		msg.Ack()
-
-		var data model.Request
-
-		err := json.Unmarshal(msg.Data, &data)
-		if err != nil {
-			log.Println("Введите json пожалуйста в поток.")
-			return
-		}
-
-		log.Printf("Subscribed message from clientID for Order: %+v\n", data.Delivery.Name)
-		сtr.cache.Set(data)
-		сtr.database.Add(data)
-
-	}, stan.DurableName(durableID),
-		stan.MaxInflight(25),
-		stan.SetManualAckMode(),
-		stan.AckWait(aw),
-	)
+func (сtr *Controller) NatsReading(msg *stan.Msg) {
+	msg.Ack()
+	var data model.Request
+	err := json.Unmarshal(msg.Data, &data)
+	if err != nil {
+		log.Println("Введите json пожалуйста в поток.")
+		return
+	}
+	log.Printf("Subscribed message from clientID for Order: %+v\n", data.Delivery.Name)
+	сtr.cache.Set(data)
+	сtr.database.Add(data)
 }
 
 func (c *Controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
