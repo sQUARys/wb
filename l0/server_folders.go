@@ -22,9 +22,7 @@ func main() {
 	db := database.New()
 	c := cache.New(db)
 	ctr := controller.New(db, c)
-
 	http.HandleFunc("/", ctr.IndexHandler)
-
 	sc, err := stan.Connect( //sc, err
 		clusterID,
 		clientID,

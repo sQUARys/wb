@@ -3,25 +3,18 @@ package cache
 import (
 	"Work/database"
 	"Work/model"
-)
-
-const (
-	insertToDB = `INSERT INTO "datasl0"("id","first_name", "last_name") values($1, $2, $3)`
+	"log"
+	"strconv"
 )
 
 type Cache struct {
-	items map[string]Item
+	items map[string]model.Request
 	db    database.Database
-}
-
-type Item struct {
-	ItemFirstName string
-	ItemLastName  string
 }
 
 func New(database database.Database) Cache {
 
-	items := make(map[string]Item)
+	items := make(map[string]model.Request)
 
 	// cache item
 	cache := Cache{
@@ -32,18 +25,29 @@ func New(database database.Database) Cache {
 	return cache
 }
 
-func (c *Cache) Set(value model.Product) {
-	c.items[*value.Id] = Item{
-		ItemFirstName: *value.FirstName,
-		ItemLastName:  *value.LastName,
+func (c *Cache) Set(value model.Request) {
+	c.items[strconv.Itoa(value.Id)] = model.Request{
+		Id: value.Id,
+		Delivery: model.DeliveryJSON{
+			Name:    value.Delivery.Name,
+			City:    value.Delivery.City,
+			Phone:   value.Delivery.Phone,
+			Address: value.Delivery.Address,
+		},
+		Thing: model.ThingJSON{
+			Price:    value.Thing.Price,
+			ItemName: value.Thing.ItemName,
+			Brand:    value.Thing.Brand,
+		},
 	}
 }
 
-func (c *Cache) Get(id string) (string, string, bool) {
-	item, found := c.items[id]
+func (c *Cache) Get(id int) (model.Request, bool) {
+	item, found := c.items[strconv.Itoa(id)]
 	// cache not found
 	if !found {
-		return "Not Found", "Not Found", false
+		log.Println("Not found in Get Cash")
+		return item, false
 	}
-	return item.ItemFirstName, item.ItemLastName, true
+	return item, true
 }

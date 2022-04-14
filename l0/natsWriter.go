@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Work/model"
 	"encoding/json"
 	"fmt"
 	stan "github.com/nats-io/stan.go"
@@ -18,19 +19,18 @@ var (
 	Sc stan.Conn
 )
 
-type Person struct {
-	Id        string
-	FirstName string
-	LastName  string
-}
-
 func main() {
 
-	data := Person{
-		Id:        "103",
-		FirstName: "UEED<",
-		LastName:  "Tinkoff",
-	}
+	data := model.Request{}
+	data.Id = 3
+	data.Delivery.Name = "Roma"
+	data.Delivery.City = "Kaliningrad"
+	data.Delivery.Phone = "8901234932"
+	data.Delivery.Address = "ul. Bolshaya"
+
+	data.Thing.ItemName = "Cap"
+	data.Thing.Price = 50
+	data.Thing.Brand = "Nike"
 
 	var jsonData []byte
 	jsonData, err := json.Marshal(data)
@@ -45,7 +45,6 @@ func main() {
 
 	PublishNats(jsonData, channel)
 
-	//PrintMessage("test", "test", "test-1")
 	<-quit
 }
 

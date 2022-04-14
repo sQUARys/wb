@@ -9,11 +9,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 const (
-	selectAllData = `SELECT * FROM "datasl0"`
+	selectAllData = `SELECT * FROM "tablel0"`
 )
 
 type Controller struct {
@@ -33,21 +34,20 @@ func New(database database.Database, cache cache.Cache) *Controller {
 
 func (сtr *Controller) NatsReading(sc stan.Conn, channel string, durableID string) {
 
-	aw, _ := time.ParseDuration("60s")
+	aw, _ := time.ParseDuration("300s")
 	sc.Subscribe(channel, func(msg *stan.Msg) {
 
 		msg.Ack()
 
-		var data model.Product
+		var data model.Request
 
 		err := json.Unmarshal(msg.Data, &data)
-
 		if err != nil {
-			log.Print(err)
+			log.Println("Введите json пожалуйста в поток.")
 			return
 		}
 
-		log.Printf("Subscribed message from clientID for Order: %+v\n", *data.FirstName)
+		log.Printf("Subscribed message from clientID for Order: %+v\n", data.Delivery.Name)
 		сtr.cache.Set(data)
 		сtr.database.Add(data)
 
@@ -68,33 +68,43 @@ func (c *Controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for rows.Next() {
-			p := model.Product{}
-			err = rows.Scan(&p.Id, &p.FirstName, &p.LastName)
+			p := model.Request{}
+
+			err = rows.Scan(
+				&p.Id,
+				&p.Delivery.Name,
+				&p.Delivery.Phone,
+				&p.Delivery.City,
+				&p.Delivery.Address,
+				&p.Thing.Price,
+				&p.Thing.ItemName,
+				&p.Thing.Brand)
+
 			c.cache.Set(p)
 		}
+		log.Println("Set in Cash Succesful")
+
 		isFirstCompile = false
 	}
 
 	if r.Method == "POST" {
 
-		//c.cache.OnAddFromNats()
+		p := model.Request{}
 
-		p := model.Product{}
+		idString := r.FormValue("id")
 
-		id := r.FormValue("id")
+		id, _ := strconv.Atoi(idString) // приведение к int
 
-		f, l, ok := c.cache.Get(id)
+		p, ok := c.cache.Get(id)
 
-		if ok {
-			p.FirstName = &f
-			p.LastName = &l
-			p.Id = &id
-		} else {
+		log.Println(p)
+
+		if !ok {
 			p = c.database.Get(id)
-			c.database.Add(p)
+			c.cache.Set(p)
 		}
 
-		products := []model.Product{}
+		products := []model.Request{}
 		products = append(products, p)
 
 		tmpl, _ := template.ParseFiles("html/index.html")

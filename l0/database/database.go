@@ -16,8 +16,8 @@ const (
 )
 
 const (
-	insertToDB = `INSERT INTO "datasl0"("id","first_name", "last_name") values($1, $2, $3)`
-	selectID   = `SELECT * FROM "datasl0" WHERE id=$1`
+	insertJSON   = `INSERT INTO "tablel0"("id", "name" ,"phone", "city" , "adress" , "price" , "item_name" , "brand") values($1, $2, $3 , $4 , $5 , $6 , $7 , $8)`
+	selectIDJSON = `SELECT * FROM "tablel0" WHERE id=$1`
 )
 
 type Database struct {
@@ -44,28 +44,48 @@ func New() Database {
 	return database
 }
 
-func (d Database) Get(id string) model.Product {
+func (d Database) Add(req model.Request) {
 
-	row, err := d.DbStruct.Query(selectID, id)
+	_, err := d.DbStruct.Exec(
+		insertJSON,
+		req.Id,
+		req.Delivery.Name,
+		req.Delivery.Phone,
+		req.Delivery.City,
+		req.Delivery.Address,
+		req.Thing.Price,
+		req.Thing.ItemName,
+		req.Thing.Brand)
+
+	if err != nil {
+		log.Print(err)
+	}
+}
+
+func (d Database) Get(id int) model.Request {
+
+	row, err := d.DbStruct.Query(selectIDJSON, id)
 
 	defer row.Close()
 
-	p := model.Product{}
+	p := model.Request{}
 
 	for row.Next() {
-		p = model.Product{}
-		err = row.Scan(&p.Id, &p.FirstName, &p.LastName)
+		p = model.Request{}
+		err = row.Scan(
+			&p.Id,
+			&p.Delivery.Name,
+			&p.Delivery.Phone,
+			&p.Delivery.City,
+			&p.Delivery.Address,
+			&p.Thing.Price,
+			&p.Thing.ItemName,
+			&p.Thing.Brand)
 	}
+
 	if err != nil {
 		log.Print(err)
 	}
 
 	return p
-}
-
-func (d Database) Add(product model.Product) {
-	_, err := d.DbStruct.Exec(insertToDB, *product.Id, *product.FirstName, *product.LastName)
-	if err != nil {
-		log.Print(err)
-	}
 }

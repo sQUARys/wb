@@ -2,17 +2,43 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Products</title>
+    <title>INFO</title>
+    <style>
+        table {
+            width: 100%;
+            height: 100px;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-<table>
-    <thead><th>Id</th><th>Model</th><th>Company</th><th>Price</th></thead>
-    {{range . }}
-    <tr>
-        <td>{{.FirstName}}</td>
-        <td>{{.LastName}}</td>
-    </tr>
-    {{end}}
-</table>
+    <table border="1">
+        <thead>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th>Address</th>
+            <th>Price</th>
+            <th>ItemName</th>
+            <th>Brand</th>
+        </thead>
+        {{range . }}
+        <tr>
+            <td>{{.Id}}</td>
+            <br/>
+            <td>{{.Delivery.Name}}</td>
+            <td>{{.Delivery.Phone}}</td>
+            <td>{{.Delivery.City}}</td>
+            <td>{{.Delivery.Address}}</td>
+            <br/>
+            <td>{{.Thing.Price}}</td>
+            <td>{{.Thing.ItemName}}</td>
+            <td>{{.Thing.Brand}}</td>
+        </tr>
+
+        {{end}}
+    </table>
 </body>
 </html>

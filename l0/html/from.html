@@ -2,15 +2,42 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>New Product</title>
+    <title>FormID</title>
+    <style>
+        body{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 40px auto;
+            width: 100%;
+        }
+        h3{
+            font-size: 40px;
+        }
+        form{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        form label{
+            font-size: 20px;
+        }
+        form :last-child{
+            margin-top: 20px;
+        }
+
+    </style>
 </head>
 <body>
-<h3>Add Product</h3>
-<form method="POST">
+    <h3>Add Product</h3>
 
-    <label>ID</label><br>
-    <input type="text" name="id" /><br><br>
-    <input type="submit" value="Send" />
-</form>
+    <form method="POST">
+
+        <label><stron>ID</stron></label><br>
+        <input type="text" name="id"  />
+        <input type="submit" value="Send" />
+    </form>
 </body>
 </html>
