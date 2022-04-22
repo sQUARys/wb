@@ -1,14 +1,14 @@
 package main
 
 //Реализовать бинарный поиск встроенными методами языка.
-//!!!!!
+
 import (
 	"fmt"
 	"sort"
 )
 
 func BinarySearch(array []int, search_number int) (result bool) {
-	sort.Ints(array)
+
 	lowKey := 0               // первый индекс
 	highKey := len(array) - 1 // последний индекс
 	if (array[lowKey] > search_number) || (array[highKey] < search_number) {
@@ -37,5 +37,7 @@ func BinarySearch(array []int, search_number int) (result bool) {
 
 func main() {
 	a := []int{2, 4, 2, 0, 1}
-	BinarySearch(a, 0)
+	sort.Ints(a)
+
+	BinarySearch(a, 2)
 }

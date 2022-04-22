@@ -5,7 +5,7 @@ import (
 )
 
 //Реализовать быструю сортировку массива (quicksort) встроенными методами языка.
-//!!!!!
+
 func quicksort(a []int) []int {
 	if len(a) < 2 {
 		return a

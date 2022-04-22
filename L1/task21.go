@@ -1,29 +1,30 @@
 package main
 
+import "fmt"
+
 //Реализовать паттерн «адаптер» на любом примере.
 
-//Это когда функция принимает интерфейс, где методы описаны.
-//А у тебя структура у которой эти методы чуть другие, например, в них нет аргумента контекста. И поэтому передать нельзя.
-//И вот адаптер это ты создаешь новую структуру внутри которой старая. А методы новой структуры имеют аргумент контекста
-//и внутри вызывают методы старой структуры
-//???????
-type Person struct {
-	Name string
-	Age  int
+type IProcess interface {
+	InProcess()
+}
+type Student struct {
 }
 
-type ImprovedPerson struct { // Адаптер
-	LastPerson Person
+func (s *Student) PrintInfo(str string) {
+	fmt.Printf("Hi, my name is %s\n", str)
 }
 
-type Interface interface {
-	SetName()
+//Adapter
+type School struct {
+	student Student
 }
 
-func Process(i Interface) {
-	i.SetName()
+func (school School) InProcess() {
+	fmt.Println("Welcome to our school.")
+	school.student.PrintInfo("Oleg")
 }
 
 func main() {
-	Process()
+	var processor IProcess = School{}
+	processor.InProcess()
 }
