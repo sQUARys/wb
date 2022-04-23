@@ -10,18 +10,19 @@ import (
 
 func main() {
 
-	var wg sync.WaitGroup
-	array := [5]int{2, 4, 6, 8, 10}
+	var wg sync.WaitGroup //переменная для синхронизации горутин
+
+	array := [5]int{2, 4, 6, 8, 10} // массив чисел
 
 	for i := 0; i < 5; i++ {
-		wg.Add(1)
+		wg.Add(1) // в группе теперь +1 горутина
 
-		go func(i int) {
-			fmt.Println(array[i] * array[i])
-			defer wg.Done()
+		go func(i int) { // запуск горутины
+			fmt.Println(array[i] * array[i]) // вывод квадрата числа из массива
+			defer wg.Done()                  // горутина закончила работу
 		}(i)
 	}
 
-	wg.Wait()
+	wg.Wait() // ждем пока все горутины не завершат работу
 
 }

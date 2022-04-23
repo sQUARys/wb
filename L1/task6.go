@@ -3,30 +3,32 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 //Реализовать все возможные способы остановки выполнения горутины.
-// Где взять все способы ???!??!??
+
 func main() {
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup //переменная для синхронизации горутин
 
-	StopChan := make(chan bool)
+	StopChan := make(chan bool) // открываем не буферизированный канал принимающий только булевые значения
 
-	wg.Add(1)
+	wg.Add(1) // добавляем к синхронизации горутину
 
-	go func() {
+	go func(wg *sync.WaitGroup) { // запускаем горутину
 		for {
 			select {
-			case <-StopChan:
-				return
+			case <-StopChan: // если в канал поступило сообщение о завершении
+				defer wg.Done() // горутина закончила работу
+				return          //выходим из цикла
 			default:
-				defer wg.Done()
-				fmt.Println("HI")
+				fmt.Println("HI") // выводим какое-либо сообщение
 			}
 		}
-	}()
+	}(&wg)
 
-	wg.Wait()
-	StopChan <- true
+	time.Sleep(1)    // для того, чтобы можно было увидеть сообщение из дефолтного кейса
+	StopChan <- true // передаем в канал сообщение о завершении его работы
+	wg.Wait()        // ждем окончания горутины
 
 }

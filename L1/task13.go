@@ -6,17 +6,17 @@ import (
 
 //Поменять местами два числа без создания временной переменной.
 
-func changer(first int, second int) (int, int) {
-	second = first + second
-	first = second - first
-	second = second - first
-	return first, second
+func changer(first int, second int) (int, int) { // функция замены местами два числа
+	second = first + second // сумма двух чисел записывается во второе
+	first = second - first  // разность между уже записанным вторым и первым записывается в первое значение
+	second = second - first // разность между уже записанным вторым и уже записанным  первым записывается в первое значение
+	return first, second    // возвращается замененые переменные
 }
 
 func main() {
 	a := -10
 	b := 5
-	a, b = changer(a, b)
+	a, b = changer(a, b) // замена переменных
 
-	fmt.Println(a, b)
+	fmt.Println(a, b) // вывод
 }

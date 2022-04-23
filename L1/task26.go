@@ -9,14 +9,15 @@ import (
 //(true — если уникальные, false etc). Функция проверки должна быть регистронезависимой.
 
 func main() {
-	s := "aabcd"
-	s = strings.ToLower(s)
-	isUnique := true
+	s := "aabcd"           // строка
+	s = strings.ToLower(s) // переводим все к нижнему регистру(проверка регистронезависима)
+	isUnique := true       //булевая переменная, которая хранит информацию об уникальности строки
 
-	for i := 0; i < len(s) && isUnique; i++ {
-		if strings.Count(s, string(s[i])) > 1 {
-			isUnique = false
+	for i := 0; i < len(s) && isUnique; i++ { // проходим по всей строке
+		if strings.Count(s, string(s[i])) > 1 { // если в строке оказалось больше чем одна определенная буква строки
+			isUnique = false //строка не уникальная
+			break
 		}
 	}
-	fmt.Println(isUnique)
+	fmt.Println(isUnique) //выводим уникальная ли строка
 }

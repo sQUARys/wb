@@ -7,37 +7,35 @@ import (
 	"sort"
 )
 
-func BinarySearch(array []int, search_number int) (result bool) {
+func BinarySearch(array []int, search_number int) (result bool) { // функция бинарного поиска
 
-	lowKey := 0               // первый индекс
-	highKey := len(array) - 1 // последний индекс
-	if (array[lowKey] > search_number) || (array[highKey] < search_number) {
-		return // нужное значение не в диапазоне данных
+	left := 0               // первый индекс массива
+	right := len(array) - 1 // последний индекс массива
+
+	if (array[left] > search_number) || (array[right] < search_number) { // значение вышло за границы массива
+		return // выходим из функции
 	}
-	for lowKey <= highKey {
-		// уменьшаем список рекурсивно
-		mid := (lowKey + highKey) / 2 // середина
-		if array[mid] == search_number {
-			result = true // мы нашли значение
-			fmt.Println(mid)
-			return
+
+	for left <= right { // пока первый индекс меньше либо равен последнего
+		mid := (left + right) / 2        // серединный индекс массива
+		if array[mid] == search_number { // если мы нашли значение
+			result = true
+			fmt.Println(mid) // выводим что значение найдено
+			return           // выходим из функции
 		}
-		if array[mid] < search_number {
-			// если поиск больше середины - мы берем только блок с большими значениями увеличивая lowKey
-			lowKey = mid + 1
-			continue
+		if array[mid] < search_number { // если центральное значение меньше искомого значения
+			left = mid + 1 // левую границу смещаем в середину
 		}
-		if array[mid] > search_number {
-			// если поиск меньше середины - мы берем блок с меньшими значениями уменьшая highKey
-			highKey = mid - 1
+		if array[mid] > search_number { // если центральное значение больше искомого значения
+			right = mid - 1 // правую границу смещаем в середину
 		}
 	}
 	return
 }
 
 func main() {
-	a := []int{2, 4, 2, 0, 1}
-	sort.Ints(a)
+	a := []int{2, 4, 2, 0, 1} // неотсортированный массив
+	sort.Ints(a)              // сортируем его
 
-	BinarySearch(a, 2)
+	BinarySearch(a, 2) // ищем значение 2 в массиве а
 }

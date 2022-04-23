@@ -11,42 +11,42 @@ import (
 //после чего данные из второго канала должны выводиться в stdout.
 
 func main() {
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup //переменная для синхронизации горутин
 	var count int = 0
-	const ArrLen = 5
+	const ArrLen = 5 // константа длинны массива
 
-	x := [ArrLen]int{2, 5, 10, 60, 23}
+	x := [ArrLen]int{2, 5, 10, 60, 23} // массив с числами
 
-	FirstChan := make(chan int, 100)
-	SecondChan := make(chan int, 100)
+	FirstChan := make(chan int, 100)  // создаем первый буферизированный канал с емкостью 100
+	SecondChan := make(chan int, 100) // создаем второй буферизированный канал с емкостью 100
 
-	wg.Add(1)
-	go sendToFirstCH(x, FirstChan, &wg)
+	wg.Add(1)                           // добавляем к синхронизации горутину
+	go sendToFirstCH(x, FirstChan, &wg) // запускаем функцию в горутине
 
 	for {
 		select {
-		case x := <-FirstChan:
-			SecondChan <- (x * 2)
-		case in := <-SecondChan:
-			fmt.Println(in)
-			count++
+		case x := <-FirstChan: // если в первом канале можно считать значение, считываем
+			SecondChan <- (x * 2) // записываем удвоенное значение во второй канал
+		case in := <-SecondChan: // если во втором канале можно считать значение, считываем
+			fmt.Println(in) // выводим
+			count++         // подситываем количество переменных
 		default:
-			if count == 5 {
-				return
+			if count == ArrLen { // если все значение были считаны со второго канала
+				return // выходим из цикла
 			}
 		}
 	}
 
-	wg.Wait()
+	wg.Wait() // ждем окончания горутин
 
 }
 
-func sendToFirstCH(x [5]int, firstch chan int, wg *sync.WaitGroup) {
+func sendToFirstCH(x [5]int, firstch chan int, wg *sync.WaitGroup) { // запись в первый канал
 
 	for i := 0; i < 5; i++ {
-		firstch <- x[i]
+		firstch <- x[i] // записываем значения из массива под i-ым индексом в первый канал
 	}
 
-	defer wg.Done()
+	defer wg.Done() // горутина закончила работу
 
 }

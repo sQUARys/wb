@@ -13,16 +13,16 @@ import (
 
 func main() {
 	temp := []float64{-25.4, -27.0, 13.0, 19.0, 15.5, 24.5, -21.0, 32.5}
-	sort.Float64s(temp) //[-27 -25.4 -21 13 15.5 19 24.5 32.5]
+	sort.Float64s(temp) //сортируем данный массив
 
-	result := make(map[float64][]float64)
+	result := make(map[float64][]float64) // создаем мапу
 
-	for _, t := range temp {
-		RoundedUp := math.Trunc(t/10) * 10 // Округляем температуры вниз
-		result[RoundedUp] = append(result[RoundedUp], t)
+	for _, t := range temp { // перебор всех значений массива
+		RoundedUp := math.Trunc(t/10) * 10               // Округляем температуры вниз
+		result[RoundedUp] = append(result[RoundedUp], t) // добавляем в мапу по ключу значениеы
 	}
 
 	for i, temperatures := range result {
-		fmt.Printf("%v: %v\n", i, temperatures)
+		fmt.Printf("%v: %v\n", i, temperatures) // выводим значения из мапы
 	}
 }

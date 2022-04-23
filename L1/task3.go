@@ -11,21 +11,21 @@ import (
 func main() {
 	array := [5]int{2, 4, 6, 8, 10}
 
-	var sum int
-	var wg sync.WaitGroup
-	var mut sync.Mutex
+	var sum int           // переменная для хранения суммы
+	var wg sync.WaitGroup //переменная для синхронизации горутин
+	var mut sync.Mutex    // определяем мьютекс
 
 	for i := 0; i < len(array); i++ {
-		wg.Add(1)
+		wg.Add(1) // в группе теперь +1 горутина
 
-		go func(i int, m *sync.Mutex) {
-			m.Lock()
-			sum += array[i] * array[i]
-			m.Unlock()
-			defer wg.Done()
-		}(i, &mut)
+		go func(i int, m *sync.Mutex) { // запуск горутины
+			m.Lock()                   // блокируем доступ к переменной sum
+			sum += array[i] * array[i] // записываем в переменную суммы квадрат данного числа
+			m.Unlock()                 // разблокировали доступа
+			defer wg.Done()            // горутина закончила работу
+		}(i, &mut) // пеедаем ссылку на мьютекс и i-ый индекс массивы
 	}
 
-	wg.Wait()
+	wg.Wait() // ждем пока все горутины не завершат работу
 	fmt.Println("RESULT : ", sum)
 }

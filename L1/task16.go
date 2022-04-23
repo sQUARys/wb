@@ -6,33 +6,33 @@ import (
 
 //Реализовать быструю сортировку массива (quicksort) встроенными методами языка.
 
-func quicksort(a []int) []int {
+func quicksort(a []int) []int { // функция быстрой сортировка
 	if len(a) < 2 {
-		return a
+		return a // если массив с единственным значением его не надо сортровать
 	}
 
-	left, right := 0, len(a)-1
+	left, right := 0, len(a)-1 // запись левой границы и правой границы по которой будем пробегать циклос
 
-	pivot := len(a) - 1
+	center := (right - left) / 2 //выбираем опорную точку, справа и слева от которой будем записывать значения
 
-	a[pivot], a[right] = a[right], a[pivot]
+	a[center], a[right] = a[right], a[center] // смещаем значение опорной точки в право, для более простого перемещения
 
-	for i, _ := range a {
+	for i := range a { // записываем все меньшие чем опорная точка значения слева
 		if a[i] < a[right] {
-			a[left], a[i] = a[i], a[left]
+			a[i], a[left] = a[left], a[i]
 			left++
 		}
 	}
 
-	a[left], a[right] = a[right], a[left]
+	a[left], a[right] = a[right], a[left] // заменяем опорную точку на самый маленький элемент
 
-	quicksort(a[:left])
-	quicksort(a[left+1:])
+	quicksort(a[:left])   // рекурсивно сортируем срез от 0 до опорной точки
+	quicksort(a[left+1:]) // // рекурсивно сортируем срез от опорной точки до конца
 
 	return a
 }
 
 func main() {
-	a := []int{2, 4, 2, 0, 1}
+	a := []int{2, 4, 2, 0, 1, 1, 2, 4, 6, 134}
 	fmt.Println(quicksort(a))
 }
