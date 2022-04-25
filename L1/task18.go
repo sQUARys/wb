@@ -13,6 +13,12 @@ type Counter struct { // структура-счетчик
 	Number int
 }
 
+func (c *Counter) onAddNumber(mut *sync.Mutex) {
+	mut.Lock()   // блокируем переменную Number
+	c.Number++   // добавляем номер
+	mut.Unlock() // разблокировываем
+}
+
 func main() {
 	var wg sync.WaitGroup //переменная для синхронизации горутин
 	var mut sync.Mutex    // определяем мьютекс
@@ -22,13 +28,11 @@ func main() {
 	}
 
 	for i := 0; i < 100000; i++ {
-		wg.Add(1) // добавляем к синхронизации еще одну горутину
-		go func(m *sync.Mutex) { // запускаем горутину
-			m.Lock()        // блокируем num для других горутин
-			num.Number++    // добавляем единицу к полю Number
-			m.Unlock()      // разблокировываем num для других горутин
-			defer wg.Done() // уведомляем о завершении работы горутины
-		}(&mut)
+		wg.Add(1)   // добавляем к синхронизации еще одну горутину
+		go func() { // запускаем горутину
+			defer wg.Done()       // уведомляем о завершении работы горутины
+			num.onAddNumber(&mut) //добавляем 1 к номеру структуры
+		}()
 	}
 
 	wg.Wait() // ждем завершения всех горутин

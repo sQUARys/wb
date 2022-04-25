@@ -7,26 +7,26 @@ import (
 	"sort"
 )
 
-func BinarySearch(array []int, search_number int) (result bool) { // функция бинарного поиска
+func BinarySearch(array []int, SearchNumber int) (result bool) { // функция бинарного поиска
 
 	left := 0               // первый индекс массива
 	right := len(array) - 1 // последний индекс массива
 
-	if (array[left] > search_number) || (array[right] < search_number) { // значение вышло за границы массива
+	if (array[left] > SearchNumber) || (array[right] < SearchNumber) { // значение вышло за границы массива
 		return // выходим из функции
 	}
 
 	for left <= right { // пока первый индекс меньше либо равен последнего
-		mid := (left + right) / 2        // серединный индекс массива
-		if array[mid] == search_number { // если мы нашли значение
+		mid := (left + right) / 2       // серединный индекс массива
+		if array[mid] == SearchNumber { // если мы нашли значение
 			result = true
 			fmt.Println(mid) // выводим что значение найдено
 			return           // выходим из функции
 		}
-		if array[mid] < search_number { // если центральное значение меньше искомого значения
+		if array[mid] < SearchNumber { // если центральное значение меньше искомого значения
 			left = mid + 1 // левую границу смещаем в середину
 		}
-		if array[mid] > search_number { // если центральное значение больше искомого значения
+		if array[mid] > SearchNumber { // если центральное значение больше искомого значения
 			right = mid - 1 // правую границу смещаем в середину
 		}
 	}

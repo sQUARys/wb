@@ -11,6 +11,7 @@ import (
 func main() {
 
 	var wg sync.WaitGroup //переменная для синхронизации горутин
+	var rmut sync.RWMutex
 
 	array := [5]int{2, 4, 6, 8, 10} // массив чисел
 
@@ -18,8 +19,10 @@ func main() {
 		wg.Add(1) // в группе теперь +1 горутина
 
 		go func(i int) { // запуск горутины
+			rmut.Lock()
 			fmt.Println(array[i] * array[i]) // вывод квадрата числа из массива
-			defer wg.Done()                  // горутина закончила работу
+			rmut.Unlock()
+			defer wg.Done() // горутина закончила работу
 		}(i)
 	}
 

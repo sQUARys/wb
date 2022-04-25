@@ -19,4 +19,10 @@ func main() {
 	a, b = changer(a, b) // замена переменных
 
 	fmt.Println(a, b) // вывод
+
+	//другой способ
+	a = -10
+	b = 5
+	a, b = b, a // замена переменных
+	fmt.Println(a, b)
 }
