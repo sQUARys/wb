@@ -50,14 +50,3 @@ func main() {
 	wg.Wait()
 
 }
-
-//for {
-//	id, ok := <-ids
-//	if !ok {
-//		<-time.After(time.Duration(N) * time.Second)
-//		fmt.Printf("Terminate") // выводим сообщение о завершении
-//		return                  // выходим из цикла
-//	} else {
-//		fmt.Printf("Hello №%d! \n", id) // выводим ее
-//	}
-//}
