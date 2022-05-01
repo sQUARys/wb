@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	message := task.Hello()
+	message := task.GetTime()
 	fmt.Println(message)
 
 }

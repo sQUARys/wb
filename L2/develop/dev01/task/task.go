@@ -17,7 +17,7 @@ import (
 Программа должна проходить проверки go vet и golint.
 */
 
-func Hello() string {
+func GetTime() string {
 	time, err := ntp.Time("time.nist.gov")
 	if err != nil {
 		fmt.Println("Error:", err)
