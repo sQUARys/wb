@@ -12,7 +12,6 @@ package task
 Программа должна проходить проверки go vet и golint.
 */
 
-func hi() string {
+func Hello() string {
 	return "HI"
-	
 }

@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"task"
+	"package/task"
 )
 
 func main() {
-	message := task.hi()
+	message := task.Hello()
 	fmt.Println(message)
 }
