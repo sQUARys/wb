@@ -1,5 +1,10 @@
 package task
 
+import (
+	"fmt"
+	"github.com/beevik/ntp"
+)
+
 /*
 === Базовая задача ===
 
@@ -13,5 +18,12 @@ package task
 */
 
 func Hello() string {
-	return "HI"
+	time, err := ntp.Time("time.nist.gov")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return "error"
+	}
+	const layout = "3:04:05 PM (MST) on Monday, January _2, 2006"
+	result := "Current Local Time:" + time.Local().Format(layout)
+	return result
 }
