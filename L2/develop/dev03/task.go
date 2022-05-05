@@ -55,7 +55,7 @@ func SortBySpecialColumn(sl []string, k int) []string {
 }
 
 func SortByNumber(sl []string) {
-	//?????
+	//????? что значит сортировать по числовому значению
 }
 
 func main() {
