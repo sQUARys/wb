@@ -24,6 +24,9 @@ import (
 */
 
 func main() {
+	var memDel string
+	isDelimited := false
+
 	configFile, err := ioutil.ReadFile("data.txt")
 
 	if err != nil {
@@ -42,27 +45,49 @@ func main() {
 	arr := strings.Split(text, "-")
 
 	for i := 1; i < len(arr); i++ {
-
 		if strings.Contains(arr[i], "d") {
+			fmt.Println("Delimiter...")
 			dVal := strings.Index(arr[i], "'")
-			//fmt.Println(string(arr[i][val]), "he")
 			delimiter := strings.Split(arr[i][dVal:], "'")
-			fmt.Println(delimiter)
 			delimiter = delimiter[1 : len(delimiter)-1]
-			fmt.Println(delimiter[0])
 			//как разделить по табу
 			configLines = strings.Split(string(configFile), delimiter[0]) // разделяем каждое слово строки на элементы массива
 			for j := range configLines {
 				fmt.Println(configLines[j])
 			}
+			isDelimited = true
+			memDel = delimiter[0]
 		}
 		if strings.Contains(arr[i], "f") {
-			var fields []string
-			fmt.Println(arr[i])
-			field, _ := strconv.Atoi(strings.Fields(arr[i])[1])
-			for f := range configLines {
-				fields = strings.Fields(configLines[f])
-				fmt.Println(fields[field-1])
+			fmt.Println("Fields...")
+
+			if !isDelimited {
+				//Cut by tab
+			} else {
+				var fields []string
+				field, _ := strconv.Atoi(strings.Fields(arr[i])[1])
+				if field >= len(configLines) {
+					fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
+					return
+				}
+				for f := range configLines {
+					fields = strings.Fields(configLines[f])
+					fmt.Println(fields[field-1])
+				}
+			}
+
+		}
+		if strings.Contains(arr[i], "s") {
+			fmt.Println("Only-delimited...")
+			configLines = strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
+
+			if !isDelimited {
+				//делим по табу memDel = tab
+			}
+			for s := range configLines {
+				if strings.Contains(configLines[s], memDel) {
+					fmt.Println(configLines[s])
+				}
 			}
 		}
 	}
