@@ -27,7 +27,7 @@ func main() {
 	var memDel string
 	isDelimited := false
 
-	configFile, err := ioutil.ReadFile("data.txt")
+	configFile, err := ioutil.ReadFile("data1.txt")
 
 	if err != nil {
 		log.Fatal(err)
@@ -50,7 +50,6 @@ func main() {
 			dVal := strings.Index(arr[i], "'")
 			delimiter := strings.Split(arr[i][dVal:], "'")
 			delimiter = delimiter[1 : len(delimiter)-1]
-			//как разделить по табу
 			configLines = strings.Split(string(configFile), delimiter[0]) // разделяем каждое слово строки на элементы массива
 			for j := range configLines {
 				fmt.Println(configLines[j])
@@ -59,30 +58,32 @@ func main() {
 			memDel = delimiter[0]
 		}
 		if strings.Contains(arr[i], "f") {
-			fmt.Println("Fields...")
-
 			if !isDelimited {
-				//Cut by tab
-			} else {
-				var fields []string
-				field, _ := strconv.Atoi(strings.Fields(arr[i])[1])
-				if field >= len(configLines) {
-					fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
-					return
-				}
-				for f := range configLines {
-					fields = strings.Fields(configLines[f])
-					fmt.Println(fields[field-1])
-				}
+				fmt.Println(string(configFile))
+				configLines = strings.Split(string(configFile), "\t") // разделяем каждое слово строки на элементы массива
+				fmt.Println(configLines[0])
+			}
+
+			fmt.Println("Fields...")
+			var fields []string
+			field, _ := strconv.Atoi(strings.Fields(arr[i])[1])
+
+			if field >= len(configLines) {
+				fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
+				return
+			}
+			for f := range configLines {
+				fields = strings.Fields(configLines[f])
+				fmt.Println(fields[field-1])
 			}
 
 		}
 		if strings.Contains(arr[i], "s") {
 			fmt.Println("Only-delimited...")
-			configLines = strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
 
+			configLines = strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
 			if !isDelimited {
-				//делим по табу memDel = tab
+				memDel = "\t"
 			}
 			for s := range configLines {
 				if strings.Contains(configLines[s], memDel) {
