@@ -38,7 +38,7 @@ start := time.Now()
 fmt.Printf(“fone after %v”, time.Since(start))
 */
 
-func or(channels ...<-chan interface{}) <-chan interface{} {
+func or1(channels ...<-chan interface{}) <-chan interface{} {
 	switch len(channels) {
 	case 0:
 		return nil
@@ -65,6 +65,26 @@ func or(channels ...<-chan interface{}) <-chan interface{} {
 		}
 	}()
 	return orDone
+}
+
+func or(channels ...<-chan interface{}) <-chan interface{} {
+	doneCh := make(chan interface{})
+
+	switch len(channels) {
+	case 0:
+		return nil
+	case 1:
+		return channels[0]
+	default:
+		go func(ch chan interface{}) {
+			defer close(doneCh)
+			select {
+			case <-channels[0]:
+			case <-or(append(channels[1:], doneCh)...):
+			}
+		}(doneCh)
+	}
+	return doneCh
 }
 
 func main() {
