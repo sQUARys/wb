@@ -17,22 +17,6 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
-//func main() {
-//	resp, err := http.Get("https://jsonplaceholder.typicode.com/posts")
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
-//	//We Read the response body on the line below.
-//	fmt.Println(resp.Body)
-//	//_, err := ioutil.ReadAll(resp.Body)
-//	//if err != nil {
-//	//	log.Fatalln(err)
-//	//}
-//	//Convert the body to type string
-//	//sb := string(body)
-//	//log.Printf(sb)
-//}
-
 func main() {
 	str := "https://github.com/sQUARys"
 
