@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -17,18 +17,28 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
+//func main() {
+//	resp, err := http.Get("https://jsonplaceholder.typicode.com/posts")
+//	if err != nil {
+//		log.Fatalln(err)
+//	}
+//	//We Read the response body on the line below.
+//	fmt.Println(resp.Body)
+//	//_, err := ioutil.ReadAll(resp.Body)
+//	//if err != nil {
+//	//	log.Fatalln(err)
+//	//}
+//	//Convert the body to type string
+//	//sb := string(body)
+//	//log.Printf(sb)
+//}
+
 func main() {
+	str := "https://github.com/sQUARys"
 
-	fmt.Println("\nDownloading file...\n")
+	fmt.Print("\nDownloading file...\n")
 
-	fileUrl, err := url.Parse(*cliUrl)
-
-	if err != nil {
-		panic(err)
-	}
-
-	filePath := fileUrl.Path
-	segments := strings.Split(filePath, "/")
+	segments := strings.Split(str, "/")
 	fileName := segments[len(segments)-1]
 	file, err := os.Create(fileName)
 
@@ -38,32 +48,36 @@ func main() {
 	}
 	defer file.Close()
 
-	checkStatus := http.Client{
-		CheckRedirect: func(r *http.Request, via []*http.Request) error {
-			r.URL.Opaque = r.URL.Path
-			return nil
-		},
-	}
-
-	response, err := checkStatus.Get(*cliUrl)
+	response, err := http.Get(str)
 
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
-	defer response.Body.Close()
+
 	fmt.Printf("Request Status: %s\n\n", response.Status)
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	sb := string(body)
 
 	filesize := response.ContentLength
 
 	go func() {
-		n, err := io.Copy(file, response.Body)
-		if n != filesize {
+
+		n, error := file.WriteString(sb)
+		if n != int(filesize) {
 			fmt.Println("Truncated")
 		}
-		if err != nil {
+		if error != nil {
 			fmt.Printf("Error: %v", err)
 		}
 	}()
 
+	fmt.Println("Succesful writing in file")
 }
