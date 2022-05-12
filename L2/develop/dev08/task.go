@@ -1,5 +1,15 @@
 package main
 
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+)
+
 /*
 === Взаимодействие с ОС ===
 
@@ -14,6 +24,85 @@ package main
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
+func pwd() string {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return currentDir
+}
+
+func cd(path string) {
+	os.Chdir(path)
+}
+
+func echo(str ...string) string {
+	arr := strings.Join(str, "\n")
+	cmd := exec.Command("echo", arr)
+	strOut, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return string(strOut)
+}
+
+func kill() {
+	// Start a process:
+	cmd := exec.Command("sleep", "5")
+
+	err := cmd.Start()
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	// Wait for the process to finish or kill it after a timeout (whichever happens first):
+	doneCh := make(chan error, 1)
+
+	go func() {
+		doneCh <- cmd.Wait()
+	}()
+
+	select {
+	case <-time.After(7 * time.Second):
+		err := cmd.Process.Kill()
+		if err != nil {
+			log.Fatal("Failed to kill process: ", err)
+		}
+		log.Println("Process killed as timeout reached")
+	case err := <-doneCh:
+		if err != nil {
+			log.Fatalf("Process finished with error = %v", err)
+		}
+		log.Print("Process finished successfully")
+	}
+}
+
 func main() {
 
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	text := scanner.Text()
+	if len(text) == 0 {
+		fmt.Println("Input error.")
+		return
+	}
+
+	fmt.Println(text)
+	fmt.Println(pwd())
+	cd("..")
+	fmt.Println(pwd())
+	fmt.Println(echo("Hello world", "How are you"))
+
+	//PS - ?
+	//matches, _ := filepath.Glob("/proc/*/exe")
+	//for _, file := range matches {
+	//	target, _ := os.Readlink(file)
+	//	fmt.Println(filepath.Base(target))
+	//
+	//	if len(target) > 0 {
+	//		fmt.Printf("%+v\n", target)
+	//	}
+	//}
+
+	kill()
 }
