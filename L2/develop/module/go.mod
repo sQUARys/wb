@@ -1,4 +1,4 @@
-module github.com/sQUARys/wb/L2/develop/module/task
+module github.com/sQUARys/wb/module/task
 
 go 1.18
 

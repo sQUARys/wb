@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sQUARys/wb/blob/main/L2/develop/dev01/module/task"
+	"github.com/sQUARys/wb/module/task"
 )
 
 func main() {
