@@ -1,4 +1,4 @@
-module v0
+module mod
 
 go 1.18
 
