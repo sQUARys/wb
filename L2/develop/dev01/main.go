@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sQUARys/wb/module/task"
+	"github.com/sQUARys/Go-Modules/task"
 )
 
 func main() {
