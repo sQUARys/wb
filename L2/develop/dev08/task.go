@@ -24,6 +24,10 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
+type Buffer struct {
+	data []string
+}
+
 func pwd() string {
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -36,9 +40,8 @@ func cd(path string) {
 	os.Chdir(path)
 }
 
-func echo(str ...string) string {
-	arr := strings.Join(str, "\n")
-	cmd := exec.Command("echo", arr)
+func echo(str string) string {
+	cmd := exec.Command("echo", str)
 	strOut, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -79,6 +82,8 @@ func kill() {
 
 func main() {
 
+	fmt.Print("Введите команду(можно через конвеер на пайпах):")
+
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	text := scanner.Text()
@@ -87,11 +92,41 @@ func main() {
 		return
 	}
 
-	fmt.Println(text)
-	fmt.Println(pwd())
-	cd("..")
-	fmt.Println(pwd())
-	fmt.Println(echo("Hello world", "How are you"))
+	buf := Buffer{}
+
+	commands := strings.Split(text, "|")
+
+	isTouchedBuf := false
+
+	for i := 0; i < len(commands); i++ {
+		if strings.Contains(commands[i], "cd") {
+			path := strings.Split(commands[i], " ")
+			cd(path[1])
+		}
+		if strings.Contains(commands[i], "pwd") {
+			buf.data = append(buf.data, pwd())
+			isTouchedBuf = true
+		}
+		if strings.Contains(commands[i], "echo") {
+			echoStr := strings.Split(commands[i], "'")[1]
+			if isTouchedBuf {
+				echoArr := strings.Join(buf.data, "")
+				buf.data = append(buf.data, echo(echoArr))
+				buf.data = append(buf.data, echo(echoStr))
+
+			} else {
+				buf.data = append(buf.data, echo(echoStr))
+				isTouchedBuf = true
+			}
+		}
+	}
+
+	fmt.Println(strings.Join(buf.data, " "))
+
+	//fmt.Println(pwd())
+	//cd("..")
+	//fmt.Println(pwd())
+	//fmt.Println(echo("Hello world", "How are you"))
 
 	//PS - ?
 	//matches, _ := filepath.Glob("/proc/*/exe")
@@ -104,5 +139,5 @@ func main() {
 	//	}
 	//}
 
-	kill()
+	//kill()
 }
