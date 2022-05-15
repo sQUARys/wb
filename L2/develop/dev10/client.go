@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 /*
@@ -15,6 +17,8 @@ import (
 Примеры вызовов:
 go-telnet --timeout=10s host port
 go-telnet mysite.ru 8080
+go-telnet --timeout=7s 127.0.0.1 8081
+
 go-telnet 127.0.0.1 8081
 go-telnet --timeout=3s 1.1.1.1 123
 
@@ -38,11 +42,32 @@ func main() {
 
 	commands := strings.Split(text, " ")
 
+	var timeout int
+	if strings.Contains(text, "--timeout") {
+		time := strings.Split(commands[1], "=")
+		time = strings.Split(time[1], "s")
+		timeout, _ = strconv.Atoi(time[0])
+	} else {
+		timeout = 10
+	}
+
+	fmt.Println(timeout)
+
 	host := commands[len(commands)-2]
 	port := commands[len(commands)-1]
 
 	connectTo := host + ":" + port
-	conn, _ := net.Dial("tcp", connectTo) //// Подключаемся к сокету
+
+	d := net.Dialer{
+		Timeout: time.Duration(timeout) * time.Second,
+	}
+
+	conn, err := d.Dial("tcp", connectTo) //// Подключаемся к сокету
+	//conn.SetDeadline(time.Now().Add(time.Second * time.Duration(timeout)))
+
+	if err != nil {
+		fmt.Println("Is Finished.")
+	}
 	for {
 		reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
 		fmt.Print("Text to send: ")
