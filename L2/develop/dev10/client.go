@@ -3,10 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,6 +33,8 @@ go-telnet --timeout=3s 1.1.1.1 123
 */
 
 func main() {
+
+	var wg sync.WaitGroup //переменная для синхронизации горутин
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
@@ -63,20 +67,55 @@ func main() {
 	}
 
 	conn, err := d.Dial("tcp", connectTo) //// Подключаемся к сокету
-	//conn.SetDeadline(time.Now().Add(time.Second * time.Duration(timeout)))
 
-	if err != nil {
-		fmt.Println("Is Finished.")
-	}
+	errChan := make(chan error)
+	shutdownCh := make(chan struct{})
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-errChan:
+				shutdownCh <- struct{}{}
+			}
+		}
+
+	}()
+
 	for {
-		reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
-		fmt.Print("Text to send: ")
-		text, _ := reader.ReadString('\n') // Отправляем в socket
-		fmt.Fprintf(conn, text+"\n")       // Прослушиваем ответ
-		fmt.Println(conn)
+		select {
+		case <-shutdownCh:
+			fmt.Println("Break by Ctrl+D")
+			return
+		default:
+			if err != nil {
+				fmt.Println("Server has stopped.")
+				return
+			}
 
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Print("Message from server: " + message)
+			reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
+			fmt.Print("Text to send: ")
+			text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
+
+			if errorOfSocket == io.EOF {
+				errChan <- errorOfSocket
+			} else {
+				fmt.Fprintf(conn, text+"\n") // Прослушиваем ответ
+
+				message, ok := bufio.NewReader(conn).ReadString('\n')
+
+				if ok != nil {
+					fmt.Println("Server has stopped.")
+					return
+				}
+				fmt.Print("Message from server: " + message)
+			}
+
+		}
+
 	}
 
+	wg.Wait()
+	conn.Close()
 }
