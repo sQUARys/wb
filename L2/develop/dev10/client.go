@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -82,17 +83,21 @@ func main() {
 		}
 	}()
 
-	wg.Add(1)
+	ctx := context.TODO()
+	context, cancelCtx := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
+	defer cancelCtx()
 
 	for {
 		select {
+		case <-context.Done():
+			fmt.Println("Timout has finished")
+			return
 		case <-shutdownCh:
 			fmt.Println("Break by Ctrl+D")
 			return
 		default:
 			if err != nil {
-				fmt.Println("Server has stopped.")
-				return
+				break
 			}
 
 			reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
