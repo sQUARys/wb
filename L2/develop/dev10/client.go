@@ -52,12 +52,13 @@ func (srv *Server) hasConnection(wg *sync.WaitGroup, mut *sync.Mutex, c chan boo
 	fmt.Println("Connection...")
 	conn, errDial := net.Dial("tcp", srv.connectToSite) //// Подключаемся к сокету
 	for errDial != nil {
-		_, errDial = net.Dial("tcp", srv.connectToSite) //// Подключаемся к сокету
+		conn, errDial = net.Dial("tcp", srv.connectToSite) //// Подключаемся к сокету
 	}
 	mut.Lock()
 	srv.connection = conn
 	srv.errorOfConnection = errDial
 	srv.isConnected = true
+	fmt.Println("Connected to ", srv)
 	mut.Unlock()
 	c <- true
 	close(c)
@@ -108,7 +109,6 @@ func main() {
 
 	errChan := make(chan error, 1)
 	shutdownCh := make(chan struct{}, 1)
-	//serverCh := make(chan Server)
 	connCh := make(chan bool, 1)
 
 	host := commands[len(commands)-2]
@@ -135,25 +135,23 @@ func main() {
 			fmt.Println("Break by Ctrl+D")
 			return
 		case <-connCh:
-			if server.connection != nil {
-				reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
-				fmt.Print("Text to send: ")
-				text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
+			reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
+			fmt.Print("Text to send: ")
+			text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
 
-				if errorOfSocket != nil {
-					errChan <- errorOfSocket
-				} else {
-					connectionWithServer := server.connection
-					fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
+			if errorOfSocket != nil {
+				errChan <- errorOfSocket
+			} else {
+				connectionWithServer := server.connection
+				fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
 
-					message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
+				message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
 
-					if ok != nil {
-						fmt.Println("Server has stopped.")
-						return
-					}
-					fmt.Print("Message from server: " + message)
+				if ok != nil {
+					fmt.Println("Server has stopped.")
+					return
 				}
+				fmt.Print("Message from server: " + message)
 			}
 
 		}
