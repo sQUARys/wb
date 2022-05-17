@@ -33,9 +33,57 @@ go-telnet --timeout=3s 1.1.1.1 123
 При подключении к несуществующему сервер, программа должна завершаться через timeout.
 */
 
-func main() {
+//1. Почитай про пакет flag
+//2. conn, err := d.Dial("tcp", connectTo) Абсолютно всегда проверяй ошибки DONE
+//3. первая горутина в бесконечном цикле. Ты не делаешь в ней break. Дальше, там ты не закрываешь канал в который пишешь DONE
+//4. context. - не должен быть на проде. Замени на что-то, например background
+//5. в дефолтном кейсе, что за проверка ошибок в самом начале? вообще неясно к чему относится. Ее не должно там быть
+//6. conn.Close() как и все другие close делаются через defer
 
+type Server struct {
+	connection        net.Conn
+	errorOfConnection error
+	connectToSite     string
+	isConnected       bool
+}
+
+func (srv *Server) hasConnection(wg *sync.WaitGroup, mut *sync.Mutex, c chan bool) {
+	defer wg.Done()
+	fmt.Println("Connection...")
+	conn, errDial := net.Dial("tcp", srv.connectToSite) //// Подключаемся к сокету
+	for errDial != nil {
+		_, errDial = net.Dial("tcp", srv.connectToSite) //// Подключаемся к сокету
+	}
+	mut.Lock()
+	srv.connection = conn
+	srv.errorOfConnection = errDial
+	srv.isConnected = true
+	mut.Unlock()
+	c <- true
+	close(c)
+}
+
+func checkEofError(wg *sync.WaitGroup, c chan error, shutdownCh chan struct{}) {
+	defer wg.Done()
+
+	isShutdown := false
+	for !isShutdown {
+		select {
+		case err := <-c:
+			if err == io.EOF {
+				shutdownCh <- struct{}{}
+				isShutdown = true
+				close(shutdownCh)
+				close(c)
+			}
+		}
+	}
+}
+
+func main() {
+	var mut sync.Mutex
 	var wg sync.WaitGroup //переменная для синхронизации горутин
+	server := Server{}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
@@ -58,30 +106,21 @@ func main() {
 
 	fmt.Println(timeout)
 
+	errChan := make(chan error, 1)
+	shutdownCh := make(chan struct{}, 1)
+	//serverCh := make(chan Server)
+	connCh := make(chan bool, 1)
+
 	host := commands[len(commands)-2]
 	port := commands[len(commands)-1]
 
-	connectTo := host + ":" + port
-
-	d := net.Dialer{
-		Timeout: time.Duration(timeout) * time.Second,
-	}
-
-	conn, err := d.Dial("tcp", connectTo) //// Подключаемся к сокету
-
-	errChan := make(chan error)
-	shutdownCh := make(chan struct{})
+	server.connectToSite = host + ":" + port
 
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case <-errChan:
-				shutdownCh <- struct{}{}
-			}
-		}
-	}()
+	go server.hasConnection(&wg, &mut, connCh)
+
+	wg.Add(1)
+	go checkEofError(&wg, errChan, shutdownCh)
 
 	ctx := context.TODO()
 	context, cancelCtx := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
@@ -95,33 +134,107 @@ func main() {
 		case <-shutdownCh:
 			fmt.Println("Break by Ctrl+D")
 			return
-		default:
-			if err != nil {
-				break
-			}
+		case <-connCh:
+			if server.connection != nil {
+				reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
+				fmt.Print("Text to send: ")
+				text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
 
-			reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
-			fmt.Print("Text to send: ")
-			text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
+				if errorOfSocket != nil {
+					errChan <- errorOfSocket
+				} else {
+					connectionWithServer := server.connection
+					fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
 
-			if errorOfSocket == io.EOF {
-				errChan <- errorOfSocket
-			} else {
-				fmt.Fprintf(conn, text+"\n") // Прослушиваем ответ
+					message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
 
-				message, ok := bufio.NewReader(conn).ReadString('\n')
-
-				if ok != nil {
-					fmt.Println("Server has stopped.")
-					return
+					if ok != nil {
+						fmt.Println("Server has stopped.")
+						return
+					}
+					fmt.Print("Message from server: " + message)
 				}
-				fmt.Print("Message from server: " + message)
 			}
 
 		}
-
 	}
 
 	wg.Wait()
-	conn.Close()
 }
+
+//go func() {
+//	isShutdown := true
+//	defer wg.Done()
+//	for isShutdown {
+//		select {
+//		case <-errChan:
+//			shutdownCh <- struct{}{}
+//			isShutdown = false
+//			close(errChan)
+//			close(shutdownCh)
+//		}
+//	}
+//}()
+
+//go func() {
+//	isShutdown := true
+//	defer wg.Done()
+//	for isShutdown {
+//		select {
+//		case <-errChan:
+//			shutdownCh <- struct{}{}
+//			isShutdown = false
+//			close(errChan)
+//			close(shutdownCh)
+//		}
+//	}
+//}()
+
+//go func(srv *Server) { //  ожидание подключение к серверу
+//	defer wg.Done()
+//
+//	var conn net.Conn
+//	var errDial error
+//	isConnected := false
+//
+//	for !isConnected {
+//		conn, errDial = net.Dial("tcp", connectTo) //// Подключаемся к сокету
+//		if errDial == nil {
+//			isConnected = true
+//			serverStatusCh <- struct{}{}
+//			close(serverStatusCh)
+//		}
+//	}
+//	connectCh <- conn
+//	close(connectCh)
+//}()
+
+//for {
+//	select {
+//	case <-context.Done():
+//		fmt.Println("Timout has finished")
+//		return
+//	case <-shutdownCh:
+//		fmt.Println("Break by Ctrl+D")
+//		return
+//	case <-serverStatusCh:
+//		reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
+//		fmt.Print("Text to send: ")
+//		text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
+//
+//		if errorOfSocket == io.EOF {
+//			errChan <- errorOfSocket
+//		} else {
+//			connectionWithServer := <-connectCh
+//			fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
+//
+//			message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
+//
+//			if ok != nil {
+//				fmt.Println("Server has stopped.")
+//				return
+//			}
+//			fmt.Print("Message from server: " + message)
+//		}
+//	}
+//}

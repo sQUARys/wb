@@ -1,15 +1,28 @@
 package main
 
 import (
-	"strconv"
-	"strings"
+	"fmt"
+	"io"
+	"net"
 )
 
+type Server struct {
+	connection        net.Conn
+	errorOfConnection error
+	connectToSite     string
+}
+
+func (srv *Server) hasConnection() {
+	str := "Hi"
+	srv.connectToSite = str
+}
+
 func main() {
-	var arr [2022]int
-	arr[0] = 1
-	res := strings.Join(arr, "")
-
-	val := strconv.Atoi(res)
-
+	err := io.EOF
+	server := Server{
+		errorOfConnection: err,
+	}
+	fmt.Println(server)
+	server.hasConnection()
+	fmt.Println(server)
 }
