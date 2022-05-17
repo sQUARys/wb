@@ -80,8 +80,9 @@ func main() {
 				shutdownCh <- struct{}{}
 			}
 		}
-
 	}()
+
+	wg.Add(1)
 
 	for {
 		select {
