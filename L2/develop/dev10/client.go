@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"net"
@@ -21,6 +22,7 @@ import (
 go-telnet --timeout=10s host port
 go-telnet mysite.ru 8080
 go-telnet --timeout=7s 127.0.0.1 8081
+go-telnet -timeout=15s 127.0.0.1 8081
 
 go-telnet 127.0.0.1 8081
 go-telnet --timeout=3s 1.1.1.1 123
@@ -45,6 +47,19 @@ type Server struct {
 	errorOfConnection error
 	connectToSite     string
 	isConnected       bool
+	timeout           int
+}
+
+func (srv *Server) setFlags() {
+	var timeout string
+	flag.StringVar(&timeout, "timeout", "10", "A timeout Var")
+	flag.Parse()
+	args := flag.Args()
+	srv.connectToSite = args[0] + ":" + args[1]
+	if strings.Contains(timeout, "s") {
+		timeout = strings.Split(timeout, "s")[0]
+	}
+	srv.timeout, _ = strconv.Atoi(timeout)
 }
 
 func (srv *Server) hasConnection(wg *sync.WaitGroup, mut *sync.Mutex, c chan bool) {
@@ -85,36 +100,12 @@ func main() {
 	var mut sync.Mutex
 	var wg sync.WaitGroup //переменная для синхронизации горутин
 	server := Server{}
-
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	text := scanner.Text()
-	if len(text) == 0 {
-		fmt.Println("Input error.")
-		return
-	}
-
-	commands := strings.Split(text, " ")
-
-	var timeout int
-	if strings.Contains(text, "--timeout") {
-		time := strings.Split(commands[1], "=")
-		time = strings.Split(time[1], "s")
-		timeout, _ = strconv.Atoi(time[0])
-	} else {
-		timeout = 10
-	}
-
-	fmt.Println(timeout)
+	server.setFlags()
+	fmt.Println(server.timeout, server.connectToSite)
 
 	errChan := make(chan error, 1)
 	shutdownCh := make(chan struct{}, 1)
 	connCh := make(chan bool, 1)
-
-	host := commands[len(commands)-2]
-	port := commands[len(commands)-1]
-
-	server.connectToSite = host + ":" + port
 
 	wg.Add(1)
 	go server.hasConnection(&wg, &mut, connCh)
@@ -123,7 +114,7 @@ func main() {
 	go checkEofError(&wg, errChan, shutdownCh)
 
 	ctx := context.TODO()
-	context, cancelCtx := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
+	context, cancelCtx := context.WithTimeout(ctx, time.Duration(server.timeout)*time.Second)
 	defer cancelCtx()
 
 	for {
