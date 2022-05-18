@@ -35,12 +35,14 @@ go-telnet --timeout=3s 1.1.1.1 123
 При подключении к несуществующему сервер, программа должна завершаться через timeout.
 */
 
-//1. Почитай про пакет flag
+//1. Почитай про пакет flag DONE
 //2. conn, err := d.Dial("tcp", connectTo) Абсолютно всегда проверяй ошибки DONE
 //3. первая горутина в бесконечном цикле. Ты не делаешь в ней break. Дальше, там ты не закрываешь канал в который пишешь DONE
-//4. context. - не должен быть на проде. Замени на что-то, например background
-//5. в дефолтном кейсе, что за проверка ошибок в самом начале? вообще неясно к чему относится. Ее не должно там быть
+//4. context. - не должен быть на проде. Замени на что-то, например background DONE
+//5. в дефолтном кейсе, что за проверка ошибок в самом начале? вообще неясно к чему относится. Ее не должно там быть DONE
 //6. conn.Close() как и все другие close делаются через defer
+
+//Ctrl+D not working
 
 type Server struct {
 	connection        net.Conn
@@ -62,7 +64,7 @@ func (srv *Server) setFlags() {
 	srv.timeout, _ = strconv.Atoi(timeout)
 }
 
-func (srv *Server) hasConnection(wg *sync.WaitGroup, mut *sync.Mutex, c chan bool) {
+func (srv *Server) hasConnection(wg *sync.WaitGroup, mut *sync.Mutex) {
 	defer wg.Done()
 	fmt.Println("Connection...")
 	conn, errDial := net.Dial("tcp", srv.connectToSite) //// Подключаемся к сокету
@@ -73,13 +75,10 @@ func (srv *Server) hasConnection(wg *sync.WaitGroup, mut *sync.Mutex, c chan boo
 	srv.connection = conn
 	srv.errorOfConnection = errDial
 	srv.isConnected = true
-	fmt.Println("Connected to ", srv)
 	mut.Unlock()
-	c <- true
-	close(c)
 }
 
-func checkEofError(wg *sync.WaitGroup, c chan error, shutdownCh chan struct{}) {
+func checkEofError(wg *sync.WaitGroup, mut *sync.Mutex, c chan error, shutdownCh chan struct{}) {
 	defer wg.Done()
 
 	isShutdown := false
@@ -87,10 +86,12 @@ func checkEofError(wg *sync.WaitGroup, c chan error, shutdownCh chan struct{}) {
 		select {
 		case err := <-c:
 			if err == io.EOF {
+				mut.Lock()
 				shutdownCh <- struct{}{}
 				isShutdown = true
 				close(shutdownCh)
 				close(c)
+				mut.Unlock()
 			}
 		}
 	}
@@ -101,17 +102,16 @@ func main() {
 	var wg sync.WaitGroup //переменная для синхронизации горутин
 	server := Server{}
 	server.setFlags()
-	fmt.Println(server.timeout, server.connectToSite)
 
 	errChan := make(chan error, 1)
 	shutdownCh := make(chan struct{}, 1)
-	connCh := make(chan bool, 1)
+	//connCh := make(chan bool, 1)
 
 	wg.Add(1)
-	go server.hasConnection(&wg, &mut, connCh)
+	go server.hasConnection(&wg, &mut)
 
 	wg.Add(1)
-	go checkEofError(&wg, errChan, shutdownCh)
+	go checkEofError(&wg, &mut, errChan, shutdownCh)
 
 	ctx := context.TODO()
 	context, cancelCtx := context.WithTimeout(ctx, time.Duration(server.timeout)*time.Second)
@@ -125,28 +125,31 @@ func main() {
 		case <-shutdownCh:
 			fmt.Println("Break by Ctrl+D")
 			return
-		case <-connCh:
-			reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
-			fmt.Print("Text to send: ")
-			text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
+		default:
+			if server.isConnected && server.errorOfConnection == nil {
+				reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
+				fmt.Print("Text to send: ")
+				text, errorOfSocket := reader.ReadString('\n') // Отправляем в socket
 
-			if errorOfSocket != nil {
-				errChan <- errorOfSocket
-			} else {
-				connectionWithServer := server.connection
-				fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
+				if errorOfSocket != nil {
+					errChan <- errorOfSocket
+					server.errorOfConnection = errorOfSocket
+				} else {
+					connectionWithServer := server.connection
+					fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
 
-				message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
+					message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
 
-				if ok != nil {
-					fmt.Println("Server has stopped.")
-					return
+					if ok != nil {
+						fmt.Println("Server has stopped.")
+						return
+					}
+					fmt.Print("Message from server: " + message)
 				}
-				fmt.Print("Message from server: " + message)
 			}
-
 		}
 	}
 
+	defer server.connection.Close()
 	wg.Wait()
 }
