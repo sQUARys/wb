@@ -1,4 +1,4 @@
-package main
+package dev02
 
 import (
 	"fmt"
@@ -56,7 +56,7 @@ func unPack(str []rune) string {
 }
 
 func main() {
-	str := []rune(`a4b3cdek5g9`)
+	str := []rune("a4b3cdek5g9")
 	out := unPack(str)
 
 	fmt.Println(out)
