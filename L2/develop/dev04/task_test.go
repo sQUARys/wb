@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"reflect"
+	"testing"
+)
 
 type testPair struct {
 	firstWord  string
@@ -34,13 +38,24 @@ type uploadPair struct {
 }
 
 var testForUpload = []uploadPair{
-	{{"пятак", "актяп", "тяпка", "тяпка"}, map[string][]string{ "пятак":["пятак" "актяп" "тяпка"] }},
-	{"пятак", "актяп", "тяпка", "тяпка", "hi", "ih", "h"},
-	{},
+	{[]string{"пятак", "актяп", "тяпка", "тяпка"}, map[string][]string{"пятак": {"пятак", "актяп", "тяпка"}}},
 }
+
+//{[]string{"пятак", "актяп", "тяпка", "тяпка", "hi", "ih", "h"}  , map[string][]string{ "пятак":["пятак" "актяп" "тяпка"] "hi":["hi" "ih"] }} ,
+//{},
 //"hi":["hi" "ih"] "листок":["листок" "слиток" "столик"]
 //😀😃:[😀😃 😃😀]
 
 func TestUploadMap(t *testing.T) {
-
+	for _, test := range testForUpload {
+		ret := uploadMap(&test.values)
+		fmt.Println(ret, test.resultMap)
+		if reflect.DeepEqual(ret, test.resultMap) {
+			t.Error(
+				"For", test.values,
+				"expected", test.resultMap,
+				"got", ret,
+			)
+		}
+	}
 }

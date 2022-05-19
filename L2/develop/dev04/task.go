@@ -29,13 +29,13 @@ type DefMap struct { // структура хранящая в себе мапу
 	m map[string][]string
 }
 
-var mapa *DefMap
-
 func New() *DefMap { // функция создания новой структуры DefMap с пустой мапой
 	return &DefMap{
 		m: make(map[string][]string),
 	}
 }
+
+var mapa *DefMap
 
 func isAnagramm(key string, str string) bool {
 	isAnWord := false
@@ -80,7 +80,7 @@ func findSingleArr() {
 	}
 }
 
-func uploadMap(arr *[]string) {
+func uploadMap(arr *[]string) map[string][]string {
 	currentArr := *arr
 
 	mapa.m[currentArr[0]] = append(mapa.m[currentArr[0]], currentArr[0])
@@ -110,13 +110,12 @@ func uploadMap(arr *[]string) {
 	}
 
 	findSingleArr()
+	return mapa.m
 }
 
 func main() {
 	in := []string{"пятак", "актяп", "тяпка", "тяпка", "актяп", "листок", "слиток", "столик", "😀😃", "😃😀", "hi", "ih", "h", "fgsdfgsd"}
 
 	mapa = New()
-	uploadMap(&in)
-
-	fmt.Println(mapa.m)
+	fmt.Println(uploadMap(&in))
 }
