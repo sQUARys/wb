@@ -47,6 +47,13 @@ var testsRevers = []testPair{
 	{[]string{""}, -1, []string{""}},
 }
 
+var testSortByNumbers = []testPair{
+	{[]string{"1", "2", "3"}, -1, []string{"1", "2", "3"}},
+	{[]string{"", "10", "-1", "2"}, -1, []string{"", "-1", "2", "10"}},
+	{[]string{"0", "0", "0", "5", "-5"}, -1, []string{"-5", "0", "0", "0", "5"}},
+	{[]string{""}, -1, []string{""}},
+}
+
 func isSimilar(sl1 []string, sl2 []string) bool {
 	var isSimilarBool bool
 	if len(sl1) != len(sl2) {
@@ -61,6 +68,19 @@ func isSimilar(sl1 []string, sl2 []string) bool {
 	return isSimilarBool
 }
 
+func TestSortingByNumber(t *testing.T) {
+	for _, test := range testsSortByK {
+		ret := SortByNumber(test.values)
+
+		if isSimilar(ret, test.results) {
+			t.Error(
+				"For", test.values,
+				"expected", test.results,
+				"got", ret,
+			)
+		}
+	}
+}
 func TestSortingWithoutRepeated(t *testing.T) {
 	for _, test := range testsSortByK {
 		ret := SortBySpecialColumn(test.values, test.k)

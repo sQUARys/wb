@@ -63,7 +63,6 @@ func SortByNumber(sl []string) []string {
 	sort.Slice(sl, func(i, j int) bool {
 		val1, _ := strconv.Atoi(sl[i])
 		val2, _ := strconv.Atoi(sl[j])
-		fmt.Println(sl[i], val1, sl[j], val2)
 		return val1 < val2
 	})
 	return sl
