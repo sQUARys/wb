@@ -25,6 +25,11 @@ var testForBefore = []MapInfo{
 	{[]string{""}, "флагов", []string{""}},
 }
 
+var testForContext = []MapInfo{
+	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "слева1", "слева2", "флагов", "справа1", "справа2"}},
+	{[]string{""}, "флагов", []string{""}},
+}
+
 func isSimilar(sl1 []string, sl2 []string) bool {
 	isSimilarBool := true
 	if len(sl1) != len(sl2) {
@@ -56,6 +61,19 @@ func TestAfter(t *testing.T) {
 func TestBefore(t *testing.T) {
 	for _, test := range testForBefore {
 		ret := Before(test.input, test.subString, subArrLeft)
+		if !isSimilar(ret, test.result) {
+			t.Error(
+				"For", test.input,
+				"expected", test.result,
+				"got", ret,
+			)
+		}
+	}
+}
+
+func TestContext(t *testing.T) {
+	for _, test := range testForContext {
+		ret := Context(test.input, test.subString, subArrLeft, subArrRight)
 		if !isSimilar(ret, test.result) {
 			t.Error(
 				"For", test.input,
