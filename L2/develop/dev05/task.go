@@ -148,16 +148,18 @@ func Fixed(arr []string, subArr []string) {
 	}
 }
 
-func GetLineNumber(arr []byte, substring string) {
+func GetLineNumber(arr []byte, substring string) int {
 	lines := strings.Split(string(arr), "\n")
 	var fieldLines []string
 	isFind := false
+
+	var result int
 
 	for i := 0; i < len(lines); i++ {
 		fieldLines = strings.Fields(lines[i])
 		for j := 0; j < len(fieldLines); j++ {
 			if fieldLines[j] == substring {
-				fmt.Println("Ваше слово находится в строке номер: ", i+1)
+				result = i + 1
 				isFind = true
 				break
 			}
@@ -166,7 +168,9 @@ func GetLineNumber(arr []byte, substring string) {
 
 	if !isFind {
 		fmt.Println("Вашего слова нет в данном тексте")
+		result = -1
 	}
+	return result
 }
 
 func insertSubstring() string {
@@ -235,7 +239,7 @@ func main() {
 			Fixed(configLines, strings.Fields(forFixArr))
 		case "n": //"line num", печатать номер строки
 			sub = insertSubstring()
-			GetLineNumber(configFile, sub)
+			fmt.Println("Ваше слово находится в строке номер: ", GetLineNumber(configFile, sub))
 		default:
 			fmt.Println("Вы ввели несуществующую команду. Программа завершит работу...")
 			isFinished = true

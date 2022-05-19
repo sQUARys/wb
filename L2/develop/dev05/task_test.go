@@ -33,14 +33,21 @@ var testForContext = []MapInfo{
 
 type ForLines struct {
 	arr    []byte
+	substr string
 	result int
 }
 
 var testForCountLines = []ForLines{
-	{[]byte("Основные\n объявления"), 1},
-	{[]byte("Основные объявления"), 0},
-	{[]byte(""), 0},
-	{[]byte("\n\n\n\n"), 4},
+	{[]byte("Основные\n объявления"), "", 1},
+	{[]byte("Основные объявления"), "", 0},
+	{[]byte(""), "", 0},
+	{[]byte("\n\n\n\n"), "", 4},
+}
+var testForGetLineNumber = []ForLines{
+	{[]byte("Основные\n объявления"), "объявления", 2},
+	{[]byte("Основные объявления"), "объявления", 1},
+	{[]byte("Основные объявления"), "флагов", -1},
+	{[]byte(""), "", -1},
 }
 
 var testForIgnoreCase = []MapInfo{
@@ -148,6 +155,17 @@ func TestInvert(t *testing.T) {
 	}
 }
 
-//-v - "invert" (вместо совпадения, исключать) Done
-//-F - "fixed", точное совпадение со строкой, не паттерн Done
+func TestGetLineNumber(t *testing.T) {
+	for _, test := range testForGetLineNumber {
+		ret := GetLineNumber(test.arr, test.substr)
+		if ret != test.result {
+			t.Error(
+				"For", test.arr,
+				"expected", test.result,
+				"got", ret,
+			)
+		}
+	}
+}
+
 //-n - "line num", печатать номер строки Done
