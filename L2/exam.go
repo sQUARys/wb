@@ -2,18 +2,18 @@ package main
 
 import (
 	"flag"
+	"fmt"
 )
 
 var (
-	timeout       string
+	cd            string
 	pathToConnect string
 )
 
 func flagSet() {
-	flag.StringVar(&timeout, "timeout", "default", "A timeout Var")
 	flag.Parse()
 	args := flag.Args()
-	pathToConnect = args[0] + ":" + args[1]
+	fmt.Println(args)
 }
 
 func main() {

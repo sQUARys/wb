@@ -1,4 +1,4 @@
-package dev02
+package main
 
 import (
 	"fmt"
@@ -38,7 +38,7 @@ func unPack(str []rune) string {
 		} else if !unicode.IsDigit(word) && isLetter { // если предыдущее  - строка , нынешнее - строка
 			result += string(memory)
 		} else if unicode.IsDigit(word) && !isLetter { // если предыдущее -число, нынешнее - число
-			fmt.Println("Не может стоять два числа подряд, пожалуйста проверьте ввод")
+			result = ""
 			break
 		}
 
@@ -56,7 +56,7 @@ func unPack(str []rune) string {
 }
 
 func main() {
-	str := []rune("a4b3cdek5g9")
+	str := []rune("a4bc2d5e")
 	out := unPack(str)
 
 	fmt.Println(out)

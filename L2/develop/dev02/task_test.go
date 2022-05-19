@@ -1,6 +1,8 @@
-package dev02
+package main
 
-import "testing"
+import (
+	"testing"
+)
 
 type testPair struct {
 	values  []rune
