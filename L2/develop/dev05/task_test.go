@@ -49,6 +49,12 @@ var testForIgnoreCase = []MapInfo{
 	{[]string{"ОснОвные", "ОснОвные", "ОснОвные"}, "флагов", []string{""}, 0},
 }
 
+var testForInvert = []MapInfo{
+	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления"}, -1},
+	{[]string{""}, "флагов", []string{}, -1},
+	{[]string{"флагов"}, "флагов", []string{}, -1},
+}
+
 func isSimilar(sl1 []string, sl2 []string) bool {
 	isSimilarBool := true
 	if len(sl1) != len(sl2) {
@@ -129,11 +135,19 @@ func TestIgnoreCase(t *testing.T) {
 	}
 }
 
-//-A - "after" печатать +N строк после совпадения Done
-//-B - "before" печатать +N строк до совпадения Done
-//-C - "context" (A+B) печатать ±N строк вокруг совпадения Done
-//-c - "count" (количество строк) Done
-//-i - "ignore-case" (игнорировать регистр) Done
+func TestInvert(t *testing.T) {
+	for _, test := range testForInvert {
+		_, ret := Invert(test.input, test.subString)
+		if !isSimilar(ret, test.result) {
+			t.Error(
+				"For", test.input,
+				"expected", test.result,
+				"got", ret,
+			)
+		}
+	}
+}
+
 //-v - "invert" (вместо совпадения, исключать) Done
 //-F - "fixed", точное совпадение со строкой, не паттерн Done
 //-n - "line num", печатать номер строки Done
