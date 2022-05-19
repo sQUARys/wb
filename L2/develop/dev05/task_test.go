@@ -5,24 +5,8 @@ import (
 	"testing"
 )
 
-//
-//type testPair struct {
-//	values  []string
-//	k       int
-//	results []string
-//}
-//
-//var testsForAfter = []testPair{
-//	{[]string{"abc", "aas", "bfd"}, 1, []string{"aas", "abc", "bfd"}},
-//	{[]string{"", "a", "f", "b"}, 0, []string{"a", "b", "f", ""}},
-//	{[]string{"aaa", "bab", "a", "bb", "bkf"}, 1, []string{"aaa", "bab", "bkf", "a", "bb"}},
-//	{[]string{""}, 0, []string{""}},
-//}
-
-//in := []string{"строка1", "строка2"}
-
-var subArr1 = []string{"слева1", "слева2"}
-var subArr2 = []string{"справа1", "справа2"}
+var subArrLeft = []string{"слева1", "слева2"}
+var subArrRight = []string{"справа1", "справа2"}
 
 type MapInfo struct {
 	input     []string
@@ -30,22 +14,36 @@ type MapInfo struct {
 	result    []string
 }
 
-var mapa = map[string][]MapInfo{
-	"after": {{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "флагов", "справа1", "справа2"}}},
+var testForAfter = []MapInfo{
+	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "флагов", "справа1", "справа2"}},
+}
+
+func isSimilar(sl1 []string, sl2 []string) bool {
+	isSimilarBool := true
+	if len(sl1) != len(sl2) {
+		isSimilarBool = false
+	}
+	for i := range sl1 {
+		fmt.Println(sl1[i], sl2[i], sl1[i] == sl2[i])
+		if sl1[i] != sl2[i] {
+			isSimilarBool = false
+			break
+		}
+	}
+	return isSimilarBool
 }
 
 func TestAfter(t *testing.T) {
-	for _, test := range mapa["after"] {
-		fmt.Println(test)
-		//ret := After(&test.values)
-		//fmt.Println(ret, test.resultMap)
-		//if reflect.DeepEqual(ret, test.resultMap) {
-		//	t.Error(
-		//		"For", test.values,
-		//		"expected", test.resultMap,
-		//		"got", ret,
-		//	)
-		//}
+	for _, test := range testForAfter {
+		ret := After(test.input, test.subString, subArrRight)
+		fmt.Println(ret, test.result, isSimilar(ret, test.result))
+		if !isSimilar(ret, test.result) {
+			t.Error(
+				"For", test.input,
+				"expected", test.result,
+				"got", ret,
+			)
+		}
 	}
 }
 

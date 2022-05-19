@@ -1,8 +1,6 @@
 package main
 
-import (
-	"testing"
-)
+import "testing"
 
 type testPair struct {
 	values  []string
@@ -12,8 +10,8 @@ type testPair struct {
 
 var testsSortByK = []testPair{
 	{[]string{"abc", "aas", "bfd"}, 1, []string{"aas", "abc", "bfd"}},
-	{[]string{"", "a", "f", "b"}, 0, []string{"a", "b", "f", ""}},
-	{[]string{"aaa", "bab", "a", "bb", "bkf"}, 1, []string{"aaa", "bab", "bkf", "a", "bb"}},
+	{[]string{"", "a", "f", "b"}, 0, []string{"", "a", "b", "f"}},
+	{[]string{"aaa", "bab", "a", "bb", "bkf"}, 1, []string{"aaa", "bab", "a", "bb", "bkf"}},
 	{[]string{""}, 0, []string{""}},
 }
 
@@ -25,21 +23,21 @@ var testsSortWithoutRepeated = []testPair{
 }
 
 var testsRevers = []testPair{
-	{[]string{"abc", "aas", "bfd"}, -1, []string{"bfd", "aas", "abc"}},
-	{[]string{"", "a", "f", "b"}, -1, []string{"b", "f", "a", ""}},
-	{[]string{"aaa", "bab", "a", "bb", "bkf"}, -1, []string{"bkf", "bb", "a", "bab", "aaa"}},
+	{[]string{"abc", "aas", "bfd"}, -1, []string{"bfd", "abc", "aas"}},
+	{[]string{"", "a", "f", "b"}, -1, []string{"f", "b", "a", ""}},
+	{[]string{"aaa", "bab", "a", "bb", "bkf"}, -1, []string{"bkf", "bb", "bab", "aaa", "a"}},
 	{[]string{""}, -1, []string{""}},
 }
 
 var testSortByNumbers = []testPair{
 	{[]string{"1", "2", "3"}, -1, []string{"1", "2", "3"}},
-	{[]string{"", "10", "-1", "2"}, -1, []string{"", "-1", "2", "10"}},
+	{[]string{"", "10", "-1", "2"}, -1, []string{"-1", "", "2", "10"}},
 	{[]string{"0", "0", "0", "5", "-5"}, -1, []string{"-5", "0", "0", "0", "5"}},
 	{[]string{""}, -1, []string{""}},
 }
 
 func isSimilar(sl1 []string, sl2 []string) bool {
-	var isSimilarBool bool
+	isSimilarBool := true
 	if len(sl1) != len(sl2) {
 		isSimilarBool = false
 	}
@@ -52,11 +50,10 @@ func isSimilar(sl1 []string, sl2 []string) bool {
 	return isSimilarBool
 }
 
-func TestSortingByNumber(t *testing.T) {
-	for _, test := range testsSortByK {
-		ret := SortByNumber(test.values)
-
-		if isSimilar(ret, test.results) {
+func TestReverse(t *testing.T) {
+	for _, test := range testsRevers {
+		ret := Reverse(test.values)
+		if !isSimilar(ret, test.results) {
 			t.Error(
 				"For", test.values,
 				"expected", test.results,
@@ -65,11 +62,26 @@ func TestSortingByNumber(t *testing.T) {
 		}
 	}
 }
-func TestSortingWithoutRepeated(t *testing.T) {
-	for _, test := range testsSortByK {
-		ret := SortBySpecialColumn(test.values, test.k)
 
-		if isSimilar(ret, test.results) {
+func TestSortingByNumber(t *testing.T) {
+	for _, test := range testSortByNumbers {
+		ret := SortByNumber(test.values)
+
+		if !isSimilar(ret, test.results) {
+			t.Error(
+				"For", test.values,
+				"expected", test.results,
+				"got", ret,
+			)
+		}
+	}
+}
+
+func TestSortingWithoutRepeated(t *testing.T) {
+	for _, test := range testsSortWithoutRepeated {
+		ret := SortWithoutRepeat(test.values)
+
+		if !isSimilar(ret, test.results) {
 			t.Error(
 				"For", test.values,
 				"expected", test.results,
@@ -83,21 +95,7 @@ func TestSortingByK(t *testing.T) {
 	for _, test := range testsSortByK {
 		ret := SortBySpecialColumn(test.values, test.k)
 
-		if isSimilar(ret, test.results) {
-			t.Error(
-				"For", test.values,
-				"expected", test.results,
-				"got", ret,
-			)
-		}
-	}
-}
-
-func TestReverse(t *testing.T) {
-	for _, test := range testsRevers {
-		ret := Reverse(test.values)
-
-		if isSimilar(ret, test.results) {
+		if !isSimilar(ret, test.results) {
 			t.Error(
 				"For", test.values,
 				"expected", test.results,
