@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"sort"
 )
@@ -58,27 +59,52 @@ func SortByNumber(sl []string) {
 	//????? что значит сортировать по числовому значению
 }
 
+type Command struct {
+	k int
+	n bool
+	r bool
+	u bool
+}
+
+func (c *Command) flagSet() {
+	flag.IntVar(&c.k, "k", -1, "Column")
+	flag.BoolVar(&c.n, "n", false, "sorting by int value")
+	flag.BoolVar(&c.r, "r", false, "reverse sorting")
+	flag.BoolVar(&c.u, "u", false, "sorting without repeated")
+
+	flag.Parse()
+}
+
 func main() {
-	var choice string
 	str := []string{"abc", "acs", "bfd", "aaa", "aaa", "bbb"}
 
-	fmt.Scanf("%s\n", &choice)
+	commands := Command{}
+	defaultCommand := Command{
+		k: -1,
+		n: false,
+		r: false,
+		u: false,
+	}
+	commands.flagSet()
+	fmt.Println(commands.k)
 
-	switch choice {
-	case "k":
-		var k int
+	if commands.n == true {
+
+	}
+	if commands.k != -1 {
 		fmt.Println("Вы выбрали отсортировать по определенной колонке.")
-		fmt.Print("Введите индекс колонки:")
-		fmt.Scanf("%d\n", &k)
-		fmt.Println(SortBySpecialColumn(str, k))
-	case "r":
+		fmt.Println(SortBySpecialColumn(str, commands.k))
+	}
+	if commands.r == true {
 		fmt.Println("Вы выбрали отсортировать в обратном порядке.")
 		fmt.Println(Reverse(str))
-	case "u":
+	}
+	if commands.u == true {
 		fmt.Println("Вы выбрали отсортировать и не выводить повторяющиеся строки.")
 		fmt.Println(SortWithoutRepeat(str))
-	default:
-		fmt.Println("Вы ввели несуществующую команду")
 	}
 
+	if defaultCommand == commands {
+		fmt.Println("Вы ввели несуществующую команду")
+	}
 }
