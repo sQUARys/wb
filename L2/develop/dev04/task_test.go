@@ -27,3 +27,20 @@ func TestAnagramm(t *testing.T) {
 		}
 	}
 }
+
+type uploadPair struct {
+	values    []string
+	resultMap map[string][]string
+}
+
+var testForUpload = []uploadPair{
+	{{"пятак", "актяп", "тяпка", "тяпка"}, map[string][]string{ "пятак":["пятак" "актяп" "тяпка"] }},
+	{"пятак", "актяп", "тяпка", "тяпка", "hi", "ih", "h"},
+	{},
+}
+//"hi":["hi" "ih"] "листок":["листок" "слиток" "столик"]
+//😀😃:[😀😃 😃😀]
+
+func TestUploadMap(t *testing.T) {
+
+}

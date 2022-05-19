@@ -4,22 +4,6 @@ import (
 	"testing"
 )
 
-//
-//func SortWithoutRepeat(sl []string) []string {
-//	var mem []string
-//	sort.Strings(sl)
-//	for i := range sl {
-//		if len(mem) == sort.SearchStrings(mem, sl[i]) { // если не найдено такой строки
-//			mem = append(mem, sl[i])
-//		}
-//	}
-//	return mem
-//}
-//
-//func SortByNumber(sl []string) {
-//	//????? что значит сортировать по числовому значению
-//}
-
 type testPair struct {
 	values  []string
 	k       int
