@@ -12,22 +12,23 @@ type MapInfo struct {
 	input     []string
 	subString string
 	result    []string
+	count     int
 }
 
 var testForAfter = []MapInfo{
-	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "флагов", "справа1", "справа2"}},
-	{[]string{""}, "флагов", []string{""}},
-	{[]string{"флагов"}, "флагов", []string{"флагов", "справа1", "справа2"}},
+	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "флагов", "справа1", "справа2"}, -1},
+	{[]string{""}, "флагов", []string{""}, -1},
+	{[]string{"флагов"}, "флагов", []string{"флагов", "справа1", "справа2"}, -1},
 }
 
 var testForBefore = []MapInfo{
-	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "слева1", "слева2", "флагов"}},
-	{[]string{""}, "флагов", []string{""}},
+	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "слева1", "слева2", "флагов"}, -1},
+	{[]string{""}, "флагов", []string{""}, -1},
 }
 
 var testForContext = []MapInfo{
-	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "слева1", "слева2", "флагов", "справа1", "справа2"}},
-	{[]string{""}, "флагов", []string{""}},
+	{[]string{"Основные", "объявления", "флагов"}, "флагов", []string{"Основные", "объявления", "слева1", "слева2", "флагов", "справа1", "справа2"}, -1},
+	{[]string{""}, "флагов", []string{""}, -1},
 }
 
 type ForLines struct {
@@ -40,6 +41,12 @@ var testForCountLines = []ForLines{
 	{[]byte("Основные объявления"), 0},
 	{[]byte(""), 0},
 	{[]byte("\n\n\n\n"), 4},
+}
+
+var testForIgnoreCase = []MapInfo{
+	{[]string{"ОснОвные", "ОбъявлЕния", "фЛагОв"}, "флагов", []string{""}, 1},
+	{[]string{"фЛагОв", "фЛагОв", "фЛагОв"}, "флагов", []string{""}, 3},
+	{[]string{"ОснОвные", "ОснОвные", "ОснОвные"}, "флагов", []string{""}, 0},
 }
 
 func isSimilar(sl1 []string, sl2 []string) bool {
@@ -103,6 +110,19 @@ func TestCountLines(t *testing.T) {
 			t.Error(
 				"For", test.arr,
 				"expected", test.result,
+				"got", ret,
+			)
+		}
+	}
+}
+
+func TestIgnoreCase(t *testing.T) {
+	for _, test := range testForIgnoreCase {
+		ret := IgnoreCase(test.input, test.subString)
+		if ret != test.count {
+			t.Error(
+				"For", test.input,
+				"expected", test.count,
 				"got", ret,
 			)
 		}

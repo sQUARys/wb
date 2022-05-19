@@ -96,7 +96,7 @@ func CountLines(arr []byte) int {
 	return len(lines)
 }
 
-func IgnoreCase(arr []string, substring string) {
+func IgnoreCase(arr []string, substring string) int {
 	count := 0
 
 	for i := 0; i < len(arr); i++ {
@@ -104,7 +104,7 @@ func IgnoreCase(arr []string, substring string) {
 			count++
 		}
 	}
-	fmt.Println("Количество совпадений без учета регистра: ", count)
+	return count
 }
 
 func Invert(arr []string, substring string) (bool, []string) {
@@ -220,7 +220,7 @@ func main() {
 			fmt.Println("Количество строк: ", CountLines(configFile))
 		case "i": //"ignore-case" (игнорировать регистр)
 			sub = insertSubstring()
-			IgnoreCase(configLines, sub)
+			fmt.Println("Количество совпадений без учета регистра: ", IgnoreCase(configLines, sub))
 		case "v": //"invert" (вместо совпадения, исключать)
 			sub = insertSubstring()
 			isFindToInvert, _ := Invert(configLines, sub)
