@@ -79,7 +79,7 @@ func (c *Command) flagSet() {
 }
 
 func main() {
-	str := []string{"abc", "acs", "bfd", "aaa", "aaa", "bbb", "bb", "a", "b"}
+	str := []string{"", "a", "", "a", "c"}
 
 	commands := Command{}
 	defaultCommand := Command{
