@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 /*
@@ -58,8 +59,14 @@ func SortBySpecialColumn(sl []string, k int) []string {
 	return sl
 }
 
-func SortByNumber(sl []string) {
-	//????? что значит сортировать по числовому значению
+func SortByNumber(sl []string) []string {
+	sort.Slice(sl, func(i, j int) bool {
+		val1, _ := strconv.Atoi(sl[i])
+		val2, _ := strconv.Atoi(sl[j])
+		fmt.Println(sl[i], val1, sl[j], val2)
+		return val1 < val2
+	})
+	return sl
 }
 
 type Command struct {
@@ -79,7 +86,7 @@ func (c *Command) flagSet() {
 }
 
 func main() {
-	str := []string{"", "a", "", "a", "c"}
+	str := []string{"", "4", "", "1", "2"}
 
 	commands := Command{}
 	defaultCommand := Command{
@@ -89,10 +96,10 @@ func main() {
 		u: false,
 	}
 	commands.flagSet()
-	fmt.Println(commands.k)
 
 	if commands.n == true {
-
+		fmt.Println("Вы выбрали отсортировать по числовому значению.")
+		fmt.Println(SortByNumber(str))
 	}
 	if commands.k != -1 {
 		fmt.Println("Вы выбрали отсортировать по определенной колонке.")

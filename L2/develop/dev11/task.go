@@ -37,7 +37,10 @@ func Serialize(obj interface{}) (string, error) {
 		return string(data), err
 	}
 }
-func hello(w http.ResponseWriter, r *http.Request) {
+
+func RequestMethods(w http.ResponseWriter, r *http.Request) {
+	log.Println("%s %s %s\n", r.Method, r.URL, r.Proto)
+
 	if r.URL.Path != "/" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
@@ -57,16 +60,17 @@ func hello(w http.ResponseWriter, r *http.Request) {
 		address := r.FormValue("address")
 		fmt.Fprintf(w, "Name = %s\n", name)
 		fmt.Fprintf(w, "Address = %s\n", address)
+
 	default:
 		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}
 }
 
 func main() {
-	http.HandleFunc("/", hello)
+	http.HandleFunc("/", RequestMethods)
 
 	fmt.Printf("Starting server for testing HTTP POST...\n")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8181", nil); err != nil {
 		log.Fatal(err)
 	}
 }
