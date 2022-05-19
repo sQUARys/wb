@@ -26,13 +26,16 @@ import (
 */
 
 func After(arr []string, substring string, inner []string) []string {
-	var index int
+	index := -1
 
 	for i := 0; i < len(arr); i++ {
 		if arr[i] == substring {
 			index = i
 			break
 		}
+	}
+	if index == -1 {
+		return []string{""}
 	}
 
 	start := make([]string, len(arr[:index+1]))
@@ -51,13 +54,15 @@ func After(arr []string, substring string, inner []string) []string {
 }
 
 func Before(arr []string, substring string, inner []string) []string {
-	var index int
-
+	index := -1
 	for i := 0; i < len(arr); i++ {
 		if arr[i] == substring {
 			index = i
 			break
 		}
+	}
+	if index == -1 {
+		return []string{""}
 	}
 
 	start := make([]string, len(arr[:index-len(inner)+2]))
