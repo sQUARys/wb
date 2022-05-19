@@ -91,9 +91,9 @@ func Context(arr []string, substring string, leftSide []string, rightSide []stri
 	return result
 }
 
-func CountLines(arr []byte) {
+func CountLines(arr []byte) int {
 	lines := strings.Split(string(arr), "\n")
-	fmt.Println("Количество строк: ", len(lines))
+	return len(lines)
 }
 
 func IgnoreCase(arr []string, substring string) {
@@ -217,7 +217,7 @@ func main() {
 			configLines = Context(configLines, sub, subArr1, subArr2)
 			fmt.Println(configLines)
 		case "c": // "count" (количество строк)
-			CountLines(configFile)
+			fmt.Println("Количество строк: ", CountLines(configFile))
 		case "i": //"ignore-case" (игнорировать регистр)
 			sub = insertSubstring()
 			IgnoreCase(configLines, sub)

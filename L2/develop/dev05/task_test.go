@@ -30,6 +30,18 @@ var testForContext = []MapInfo{
 	{[]string{""}, "флагов", []string{""}},
 }
 
+type ForLines struct {
+	arr    []byte
+	result int
+}
+
+var testForCountLines = []ForLines{
+	{[]byte("Основные\n объявления"), 1},
+	{[]byte("Основные объявления"), 0},
+	{[]byte(""), 0},
+	{[]byte("\n\n\n\n"), 4},
+}
+
 func isSimilar(sl1 []string, sl2 []string) bool {
 	isSimilarBool := true
 	if len(sl1) != len(sl2) {
@@ -77,6 +89,19 @@ func TestContext(t *testing.T) {
 		if !isSimilar(ret, test.result) {
 			t.Error(
 				"For", test.input,
+				"expected", test.result,
+				"got", ret,
+			)
+		}
+	}
+}
+
+func TestCountLines(t *testing.T) {
+	for _, test := range testForCountLines {
+		ret := CountLines(test.arr)
+		if ret == test.result {
+			t.Error(
+				"For", test.arr,
 				"expected", test.result,
 				"got", ret,
 			)
