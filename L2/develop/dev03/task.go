@@ -50,6 +50,9 @@ func SortWithoutRepeat(sl []string) []string {
 
 func SortBySpecialColumn(sl []string, k int) []string {
 	sort.Slice(sl, func(i, j int) bool {
+		if k >= len(sl[i]) || k >= len(sl[j]) {
+			return false
+		}
 		return sl[i][k] < sl[j][k]
 	})
 	return sl
@@ -76,7 +79,7 @@ func (c *Command) flagSet() {
 }
 
 func main() {
-	str := []string{"abc", "acs", "bfd", "aaa", "aaa", "bbb"}
+	str := []string{"abc", "acs", "bfd", "aaa", "aaa", "bbb", "bb", "a", "b"}
 
 	commands := Command{}
 	defaultCommand := Command{
