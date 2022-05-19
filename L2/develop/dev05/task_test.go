@@ -167,5 +167,3 @@ func TestGetLineNumber(t *testing.T) {
 		}
 	}
 }
-
-//-n - "line num", печатать номер строки Done
