@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -24,6 +25,16 @@ import (
 
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
+type Command struct {
+	A bool
+	B bool
+	C bool
+	c bool
+	i bool
+	v bool
+	F bool
+	n bool
+}
 
 func After(arr []string, substring string, inner []string) []string {
 	index := -1
@@ -180,6 +191,22 @@ func insertSubstring() string {
 	return sub
 }
 
+func (c *Command) setFlag() {
+	flag.BoolVar(&c.A, "A", false, "after")
+	flag.BoolVar(&c.B, "B", false, "before")
+	flag.BoolVar(&c.C, "C", false, "context")
+	flag.BoolVar(&c.c, "c", false, "countlines")
+	flag.BoolVar(&c.i, "i", false, "ignore-case")
+	flag.BoolVar(&c.v, "v", false, "invert")
+	flag.BoolVar(&c.F, "F", false, "fixed")
+	flag.BoolVar(&c.n, "n", false, "get line numb")
+	flag.Parse()
+}
+
+func (c *Command) isOnlyOneFlag() {
+
+}
+
 func main() {
 
 	configFile, err := ioutil.ReadFile("data.txt")
@@ -192,8 +219,6 @@ func main() {
 
 	var sub string
 
-	var command string
-
 	in := []string{"строка1", "строка2"}
 
 	subArr1 := []string{"слева1", "слева2"}
@@ -201,49 +226,45 @@ func main() {
 
 	forFixArr := "В большом тексте"
 
-	isFinished := false
-	for !isFinished {
-		fmt.Print("Введите команду(английская раскладка): ")
-		fmt.Scan(&command)
-		switch command {
-		case "A": // "after" печатать +N строк после совпадения
-			sub = insertSubstring()
-			fmt.Println("Ваш текст был успешно преобразован:")
-			configLines = After(configLines, sub, in)
+	commands := Command{}
+	commands.setFlag()
+
+	if commands.A == true { // "after" печатать +N строк после совпадения
+		sub = insertSubstring()
+		fmt.Println("Ваш текст был успешно преобразован:")
+		configLines = After(configLines, sub, in)
+		fmt.Println(configLines)
+	} else if commands.B == true { // "before" печатать +N строк до совпадения
+		sub = insertSubstring()
+		fmt.Println("Ваш текст был успешно преобразован:")
+		configLines = Before(configLines, sub, in)
+		fmt.Println(configLines)
+	} else if commands.C == true { // "context" (A+B) печатать ±N строк вокруг совпадения
+		sub = insertSubstring()
+		configLines = Context(configLines, sub, subArr1, subArr2)
+		fmt.Println(configLines)
+	} else if commands.c == true { // "count" (количество строк)
+		fmt.Println("Количество строк: ", CountLines(configFile))
+	} else if commands.i == true { //"ignore-case" (игнорировать регистр)
+		sub = insertSubstring()
+		fmt.Println("Количество совпадений без учета регистра: ", IgnoreCase(configLines, sub))
+	} else if commands.v == true { //"invert" (вместо совпадения, исключать)
+		sub = insertSubstring()
+		isFindToInvert, _ := Invert(configLines, sub)
+		if isFindToInvert {
+			fmt.Println("Ваш текст после удаления введенной подстроки.")
+			_, configLines = Invert(configLines, sub)
 			fmt.Println(configLines)
-		case "B": // "before" печатать +N строк до совпадения
-			sub = insertSubstring()
-			fmt.Println("Ваш текст был успешно преобразован:")
-			configLines = Before(configLines, sub, in)
-			fmt.Println(configLines)
-		case "C": // "context" (A+B) печатать ±N строк вокруг совпадения
-			sub = insertSubstring()
-			configLines = Context(configLines, sub, subArr1, subArr2)
-			fmt.Println(configLines)
-		case "c": // "count" (количество строк)
-			fmt.Println("Количество строк: ", CountLines(configFile))
-		case "i": //"ignore-case" (игнорировать регистр)
-			sub = insertSubstring()
-			fmt.Println("Количество совпадений без учета регистра: ", IgnoreCase(configLines, sub))
-		case "v": //"invert" (вместо совпадения, исключать)
-			sub = insertSubstring()
-			isFindToInvert, _ := Invert(configLines, sub)
-			if isFindToInvert {
-				fmt.Println("Ваш текст после удаления введенной подстроки.")
-				_, configLines = Invert(configLines, sub)
-				fmt.Println(configLines)
-			} else {
-				fmt.Println("Не было найдено введенного слова для его удаления.")
-			}
-		case "F": //"fixed", точное совпадение со строкой, не паттерн
-			Fixed(configLines, strings.Fields(forFixArr))
-		case "n": //"line num", печатать номер строки
-			sub = insertSubstring()
-			fmt.Println("Ваше слово находится в строке номер: ", GetLineNumber(configFile, sub))
-		default:
-			fmt.Println("Вы ввели несуществующую команду. Программа завершит работу...")
-			isFinished = true
+		} else {
+			fmt.Println("Не было найдено введенного слова для его удаления.")
 		}
+	} else if commands.F == true { //"fixed", точное совпадение со строкой, не паттерн
+		Fixed(configLines, strings.Fields(forFixArr))
+	} else if commands.n == true { //"line num", печатать номер строки
+		sub = insertSubstring()
+		fmt.Println("Ваше слово находится в строке номер: ", GetLineNumber(configFile, sub))
+	} else {
+		fmt.Println("Вы ввели несуществующую команду. Программа завершит работу...")
 	}
 
 }
