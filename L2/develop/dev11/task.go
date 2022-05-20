@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,14 +28,14 @@ import (
 	4. Код должен проходить проверки go vet и golint.
 */
 
-func Serialize(obj interface{}) (string, error) {
-	data, err := json.Marshal(obj)
-	if err != nil {
-		return "", err
-	} else {
-		return string(data), err
-	}
-}
+//func Serialize(obj interface{}) (string, error) {
+//	data, err := json.Marshal(obj)
+//	if err != nil {
+//		return "", err
+//	} else {
+//		return string(data), err
+//	}
+//}
 
 func RequestMethods(w http.ResponseWriter, r *http.Request) {
 	log.Println("%s %s %s\n", r.Method, r.URL, r.Proto)
