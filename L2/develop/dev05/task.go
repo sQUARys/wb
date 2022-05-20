@@ -203,10 +203,6 @@ func (c *Command) setFlag() {
 	flag.Parse()
 }
 
-func (c *Command) isOnlyOneFlag() {
-
-}
-
 func main() {
 
 	configFile, err := ioutil.ReadFile("data.txt")
