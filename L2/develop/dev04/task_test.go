@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -20,7 +19,7 @@ var testsAnagramm = []testPair{
 
 func TestAnagramm(t *testing.T) {
 	for _, test := range testsAnagramm {
-		ret := isAnagramm(test.firstWord, test.secondWord)
+		ret := IsAnagramm(test.firstWord, test.secondWord)
 
 		if ret != test.result {
 			t.Error(
@@ -39,18 +38,16 @@ type uploadPair struct {
 
 var testForUpload = []uploadPair{
 	{[]string{"пятак", "актяп", "тяпка", "тяпка"}, map[string][]string{"пятак": {"пятак", "актяп", "тяпка"}}},
+	{[]string{"листок", "слиток", "столик", "hi", "ih", "h"}, map[string][]string{"листок": {"листок", "слиток", "столик"}, "hi": {"hi", "ih"}}},
+	{[]string{"😀😃", "😃😀", "", "листок", ""}, map[string][]string{"😀😃": {"😀😃", "😃😀"}}},
 }
-
-//{[]string{"пятак", "актяп", "тяпка", "тяпка", "hi", "ih", "h"}  , map[string][]string{ "пятак":["пятак" "актяп" "тяпка"] "hi":["hi" "ih"] }} ,
-//{},
-//"hi":["hi" "ih"] "листок":["листок" "слиток" "столик"]
-//😀😃:[😀😃 😃😀]
 
 func TestUploadMap(t *testing.T) {
 	for _, test := range testForUpload {
-		ret := uploadMap(&test.values)
-		fmt.Println(ret, test.resultMap)
-		if reflect.DeepEqual(ret, test.resultMap) {
+		mapa := New()
+
+		ret := UploadMap(test.values, *mapa)
+		if !reflect.DeepEqual(ret, test.resultMap) {
 			t.Error(
 				"For", test.values,
 				"expected", test.resultMap,

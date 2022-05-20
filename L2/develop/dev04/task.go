@@ -35,9 +35,7 @@ func New() *DefMap { // функция создания новой структ�
 	}
 }
 
-var mapa *DefMap
-
-func isAnagramm(key string, str string) bool {
+func IsAnagramm(key string, str string) bool {
 	isAnWord := false
 
 	keyWords := strings.Split(key, "")
@@ -61,18 +59,18 @@ func isAnagramm(key string, str string) bool {
 	return isAnWord
 }
 
-func isFirstMeet(word string) bool {
+func IsFirstMeet(word string, mapa DefMap) bool {
 	isFirst := true
 
 	for key, _ := range mapa.m {
-		if isAnagramm(key, word) {
+		if IsAnagramm(key, word) {
 			isFirst = false
 		}
 	}
 	return isFirst
 }
 
-func findSingleArr() {
+func FindSingleArr(mapa DefMap) {
 	for key, val := range mapa.m {
 		if len(val) == 1 {
 			delete(mapa.m, key)
@@ -80,8 +78,8 @@ func findSingleArr() {
 	}
 }
 
-func uploadMap(arr *[]string) map[string][]string {
-	currentArr := *arr
+func UploadMap(arr []string, mapa DefMap) map[string][]string {
+	currentArr := arr
 
 	mapa.m[currentArr[0]] = append(mapa.m[currentArr[0]], currentArr[0])
 
@@ -90,7 +88,7 @@ func uploadMap(arr *[]string) map[string][]string {
 	for i := range currentArr {
 		for key, _ := range mapa.m {
 			isUnique = true
-			if isAnagramm(key, currentArr[i]) {
+			if IsAnagramm(key, currentArr[i]) {
 				for j := range mapa.m[key] {
 					if mapa.m[key][j] == currentArr[i] {
 						isUnique = false
@@ -102,20 +100,20 @@ func uploadMap(arr *[]string) map[string][]string {
 					break
 				}
 			} else {
-				if isFirstMeet(currentArr[i]) {
+				if IsFirstMeet(currentArr[i], mapa) {
 					mapa.m[currentArr[i]] = append(mapa.m[currentArr[i]], currentArr[i])
 				}
 			}
 		}
 	}
 
-	findSingleArr()
+	FindSingleArr(mapa)
 	return mapa.m
 }
 
 func main() {
-	in := []string{"пятак", "актяп", "тяпка", "тяпка", "актяп", "листок", "слиток", "столик", "😀😃", "😃😀", "hi", "ih", "h", "fgsdfgsd"}
+	in := []string{"пятак", "актяп", "тяпка", "тяпка"}
 
-	mapa = New()
-	fmt.Println(uploadMap(&in))
+	mapa := New()
+	fmt.Println(UploadMap(in, *mapa))
 }
