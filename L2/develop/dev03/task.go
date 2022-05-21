@@ -107,8 +107,14 @@ func sortBySpecialColumn(sl []string, k int) []string {
 
 func sortByNumber(sl []string) []string {
 	sort.Slice(sl, func(i, j int) bool {
-		val1, _ := strconv.Atoi(sl[i])
-		val2, _ := strconv.Atoi(sl[j])
+		val1, error := strconv.Atoi(sl[i])
+		if error != nil {
+			fmt.Println("Error: ", error)
+		}
+		val2, err := strconv.Atoi(sl[j])
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
 		return val1 < val2
 	})
 	return sl
