@@ -52,7 +52,7 @@ func isSimilar(sl1 []string, sl2 []string) bool {
 
 func TestReverse(t *testing.T) {
 	for _, test := range testsRevers {
-		ret := Reverse(test.values)
+		ret := reverse(test.values)
 		if !isSimilar(ret, test.results) {
 			t.Error(
 				"For", test.values,
@@ -65,7 +65,7 @@ func TestReverse(t *testing.T) {
 
 func TestSortingByNumber(t *testing.T) {
 	for _, test := range testSortByNumbers {
-		ret := SortByNumber(test.values)
+		ret := sortByNumber(test.values)
 
 		if !isSimilar(ret, test.results) {
 			t.Error(
@@ -79,7 +79,7 @@ func TestSortingByNumber(t *testing.T) {
 
 func TestSortingWithoutRepeated(t *testing.T) {
 	for _, test := range testsSortWithoutRepeated {
-		ret := SortWithoutRepeat(test.values)
+		ret := sortWithoutRepeat(test.values)
 
 		if !isSimilar(ret, test.results) {
 			t.Error(
@@ -93,7 +93,7 @@ func TestSortingWithoutRepeated(t *testing.T) {
 
 func TestSortingByK(t *testing.T) {
 	for _, test := range testsSortByK {
-		ret := SortBySpecialColumn(test.values, test.k)
+		ret := sortBySpecialColumn(test.values, test.k)
 
 		if !isSimilar(ret, test.results) {
 			t.Error(

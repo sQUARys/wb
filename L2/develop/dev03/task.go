@@ -32,47 +32,41 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
-func Reverse(sl []string) []string {
-	sort.Strings(sl)
-	sort.Sort(sort.Reverse(sort.StringSlice(sl)))
-	return sl
+//1. fmt.Println("Вы выбрали отсортировать по числовому значению.") - это никому не надо. Просто выполняй результат также, как и рабтает утилита sort линукса. man sort - нужно для того, чтобы понять, как она это делает. Реализовывать man не надо
+//2. Не пиши ты функции выше мейна. Ты не в си. Там так делается не потому, что это хорошо, а потому что по-другому не скомпилируется. Это неудобно так делать. Я (и все остальные) читаем код сверху вниз, поэтому мейн первый. Не надо функции делать экспортируемыми. У тебя внутри мейна должна вызываться одна функция sort с аргументами какими-нибудь, а уже внутри любые другие неэкспорируемые функции.
+//3. val1, _ := strconv.Atoi(sl[i]) - без err это просто бан
+
+func main() {
+	str := []string{"", "4", "", "1", "2"}
+
+	commands := Command{}
+	commands.flagSet()
+	commands.input = str
+
+	commands.sort()
 }
 
-func SortWithoutRepeat(sl []string) []string {
-	var mem []string
-	sort.Strings(sl)
-	for i := range sl {
-		if len(mem) == sort.SearchStrings(mem, sl[i]) { // если не найдено такой строки
-			mem = append(mem, sl[i])
-		}
+func (c Command) sort() {
+	if c.n == true {
+		fmt.Println(sortByNumber(c.input)) //отсортировать по числовому значению
 	}
-	return mem
-}
-
-func SortBySpecialColumn(sl []string, k int) []string {
-	sort.Slice(sl, func(i, j int) bool {
-		if k >= len(sl[i]) || k >= len(sl[j]) {
-			return false
-		}
-		return sl[i][k] < sl[j][k]
-	})
-	return sl
-}
-
-func SortByNumber(sl []string) []string {
-	sort.Slice(sl, func(i, j int) bool {
-		val1, _ := strconv.Atoi(sl[i])
-		val2, _ := strconv.Atoi(sl[j])
-		return val1 < val2
-	})
-	return sl
+	if c.k != -1 {
+		fmt.Println(sortBySpecialColumn(c.input, c.k)) // отсортировать по определенной колонке
+	}
+	if c.r == true {
+		fmt.Println(reverse(c.input)) // отсортировать в обратном порядке
+	}
+	if c.u == true {
+		fmt.Println(sortWithoutRepeat(c.input)) // отсортировать и не выводить повторяющиеся строки
+	}
 }
 
 type Command struct {
-	k int
-	n bool
-	r bool
-	u bool
+	input []string
+	k     int
+	n     bool
+	r     bool
+	u     bool
 }
 
 func (c *Command) flagSet() {
@@ -84,36 +78,38 @@ func (c *Command) flagSet() {
 	flag.Parse()
 }
 
-func main() {
-	str := []string{"", "4", "", "1", "2"}
+func reverse(sl []string) []string {
+	sort.Strings(sl)
+	sort.Sort(sort.Reverse(sort.StringSlice(sl)))
+	return sl
+}
 
-	commands := Command{}
-	defaultCommand := Command{
-		k: -1,
-		n: false,
-		r: false,
-		u: false,
+func sortWithoutRepeat(sl []string) []string {
+	var mem []string
+	sort.Strings(sl)
+	for i := range sl {
+		if len(mem) == sort.SearchStrings(mem, sl[i]) { // если не найдено такой строки
+			mem = append(mem, sl[i])
+		}
 	}
-	commands.flagSet()
+	return mem
+}
 
-	if commands.n == true {
-		fmt.Println("Вы выбрали отсортировать по числовому значению.")
-		fmt.Println(SortByNumber(str))
-	}
-	if commands.k != -1 {
-		fmt.Println("Вы выбрали отсортировать по определенной колонке.")
-		fmt.Println(SortBySpecialColumn(str, commands.k))
-	}
-	if commands.r == true {
-		fmt.Println("Вы выбрали отсортировать в обратном порядке.")
-		fmt.Println(Reverse(str))
-	}
-	if commands.u == true {
-		fmt.Println("Вы выбрали отсортировать и не выводить повторяющиеся строки.")
-		fmt.Println(SortWithoutRepeat(str))
-	}
+func sortBySpecialColumn(sl []string, k int) []string {
+	sort.Slice(sl, func(i, j int) bool {
+		if k >= len(sl[i]) || k >= len(sl[j]) {
+			return false
+		}
+		return sl[i][k] < sl[j][k]
+	})
+	return sl
+}
 
-	if defaultCommand == commands {
-		fmt.Println("Вы ввели несуществующую команду")
-	}
+func sortByNumber(sl []string) []string {
+	sort.Slice(sl, func(i, j int) bool {
+		val1, _ := strconv.Atoi(sl[i])
+		val2, _ := strconv.Atoi(sl[j])
+		return val1 < val2
+	})
+	return sl
 }
