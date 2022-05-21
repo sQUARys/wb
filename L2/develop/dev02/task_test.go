@@ -5,15 +5,15 @@ import (
 )
 
 type testPair struct {
-	values  []rune
+	values  string
 	results string
 }
 
 var tests = []testPair{
-	{[]rune("a4bc2d5e"), "aaaabccddddde"},
-	{[]rune("abcd"), "abcd"},
-	{[]rune("45"), ""},
-	{[]rune(""), ""},
+	{"a4bc2d5e", "aaaabccddddde"},
+	{"abcd", "abcd"},
+	{"45", ""},
+	{"", ""},
 }
 
 func TestUnPack(t *testing.T) {
