@@ -98,6 +98,17 @@ type Command struct {
 	n bool
 }
 
+func (c *Command) setFlag() {
+	flag.BoolVar(&c.A, "A", false, "after")
+	flag.BoolVar(&c.B, "B", false, "before")
+	flag.BoolVar(&c.C, "C", false, "context")
+	flag.BoolVar(&c.c, "c", false, "countlines")
+	flag.BoolVar(&c.i, "i", false, "ignore-case")
+	flag.BoolVar(&c.v, "v", false, "invert")
+	flag.BoolVar(&c.F, "F", false, "fixed")
+	flag.BoolVar(&c.n, "n", false, "get line numb")
+	flag.Parse()
+}
 func after(arr []string, substring string, inner []string) []string {
 	index := -1
 
@@ -252,16 +263,4 @@ func insertSubstring() string {
 	fmt.Print("Ваш файл был успешно считан. Введите пожалуйста слово, которое вы хотите найти: ")
 	fmt.Scan(&sub)
 	return sub
-}
-
-func (c *Command) setFlag() {
-	flag.BoolVar(&c.A, "A", false, "after")
-	flag.BoolVar(&c.B, "B", false, "before")
-	flag.BoolVar(&c.C, "C", false, "context")
-	flag.BoolVar(&c.c, "c", false, "countlines")
-	flag.BoolVar(&c.i, "i", false, "ignore-case")
-	flag.BoolVar(&c.v, "v", false, "invert")
-	flag.BoolVar(&c.F, "F", false, "fixed")
-	flag.BoolVar(&c.n, "n", false, "get line numb")
-	flag.Parse()
 }
