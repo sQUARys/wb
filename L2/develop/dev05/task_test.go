@@ -46,8 +46,8 @@ var testForCountLines = []ForLines{
 var testForGetLineNumber = []ForLines{
 	{[]byte("Основные\n объявления"), "объявления", 2},
 	{[]byte("Основные объявления"), "объявления", 1},
-	{[]byte("Основные объявления"), "флагов", -1},
-	{[]byte(""), "", -1},
+	{[]byte("Основные объявления"), "флагов", 0},
+	{[]byte(""), "", 0},
 }
 
 var testForIgnoreCase = []MapInfo{
@@ -78,7 +78,7 @@ func isSimilar(sl1 []string, sl2 []string) bool {
 
 func TestAfter(t *testing.T) {
 	for _, test := range testForAfter {
-		ret := After(test.input, test.subString, subArrRight)
+		ret := after(test.input, test.subString, subArrRight)
 		fmt.Println(ret, test.result, isSimilar(ret, test.result))
 		if !isSimilar(ret, test.result) {
 			t.Error(
@@ -92,7 +92,7 @@ func TestAfter(t *testing.T) {
 
 func TestBefore(t *testing.T) {
 	for _, test := range testForBefore {
-		ret := Before(test.input, test.subString, subArrLeft)
+		ret := before(test.input, test.subString, subArrLeft)
 		if !isSimilar(ret, test.result) {
 			t.Error(
 				"For", test.input,
@@ -105,7 +105,7 @@ func TestBefore(t *testing.T) {
 
 func TestContext(t *testing.T) {
 	for _, test := range testForContext {
-		ret := Context(test.input, test.subString, subArrLeft, subArrRight)
+		ret := context(test.input, test.subString, subArrLeft, subArrRight)
 		if !isSimilar(ret, test.result) {
 			t.Error(
 				"For", test.input,
@@ -118,7 +118,7 @@ func TestContext(t *testing.T) {
 
 func TestCountLines(t *testing.T) {
 	for _, test := range testForCountLines {
-		ret := CountLines(test.arr)
+		ret := countLines(test.arr)
 		if ret == test.result {
 			t.Error(
 				"For", test.arr,
@@ -131,7 +131,7 @@ func TestCountLines(t *testing.T) {
 
 func TestIgnoreCase(t *testing.T) {
 	for _, test := range testForIgnoreCase {
-		ret := IgnoreCase(test.input, test.subString)
+		ret := ignoreCase(test.input, test.subString)
 		if ret != test.count {
 			t.Error(
 				"For", test.input,
@@ -144,7 +144,7 @@ func TestIgnoreCase(t *testing.T) {
 
 func TestInvert(t *testing.T) {
 	for _, test := range testForInvert {
-		_, ret := Invert(test.input, test.subString)
+		_, ret := invert(test.input, test.subString)
 		if !isSimilar(ret, test.result) {
 			t.Error(
 				"For", test.input,
@@ -157,7 +157,7 @@ func TestInvert(t *testing.T) {
 
 func TestGetLineNumber(t *testing.T) {
 	for _, test := range testForGetLineNumber {
-		ret := GetLineNumber(test.arr, test.substr)
+		ret, _ := getLineNumber(test.arr, test.substr)
 		if ret != test.result {
 			t.Error(
 				"For", test.arr,

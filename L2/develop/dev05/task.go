@@ -24,6 +24,69 @@ import (
 
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
+
+func main() {
+
+	configFile, err := ioutil.ReadFile("data.txt")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configLines := strings.Fields(string(configFile)) // разделяем каждое слово строки на элементы массива
+
+	var sub string
+
+	in := []string{"строка1", "строка2"}
+
+	subArr1 := []string{"слева1", "слева2"}
+	subArr2 := []string{"справа1", "справа2"}
+
+	forFixArr := "В большом тексте"
+
+	commands := Command{}
+	commands.setFlag()
+
+	switch {
+	case commands.A:
+		sub = insertSubstring()
+		configLines = after(configLines, sub, in)
+		fmt.Println(configLines)
+	case commands.B: // "before" печатать +N строк до совпадения
+		sub = insertSubstring()
+		configLines = before(configLines, sub, in)
+		fmt.Println(configLines)
+	case commands.C: // "context" (A+B) печатать ±N строк вокруг совпадения
+		sub = insertSubstring()
+		configLines = context(configLines, sub, subArr1, subArr2)
+		fmt.Println(configLines)
+	case commands.c: // "count" (количество строк)
+		fmt.Println(countLines(configFile))
+
+	case commands.i: //"ignore-case" (игнорировать регистр)
+		sub = insertSubstring()
+		fmt.Println(ignoreCase(configLines, sub))
+	case commands.v: //"invert" (вместо совпадения, исключать)
+		sub = insertSubstring()
+		isFindToInvert, _ := invert(configLines, sub)
+		if isFindToInvert {
+			_, configLines = invert(configLines, sub)
+			fmt.Println(configLines)
+		}
+	case commands.F: //"fixed", точное совпадение со строкой, не паттерн
+		fixed(configLines, strings.Fields(forFixArr))
+	case commands.n: //"line num", печатать номер строки
+		sub = insertSubstring()
+		number, err := getLineNumber(configFile, sub)
+		if err {
+			break
+		}
+		fmt.Println(number)
+	default:
+		fmt.Println("Вы ввели несуществующую команду. Программа завершит работу...")
+	}
+}
+
 type Command struct {
 	A bool
 	B bool
@@ -35,7 +98,7 @@ type Command struct {
 	n bool
 }
 
-func After(arr []string, substring string, inner []string) []string {
+func after(arr []string, substring string, inner []string) []string {
 	index := -1
 
 	for i := 0; i < len(arr); i++ {
@@ -63,7 +126,7 @@ func After(arr []string, substring string, inner []string) []string {
 	return start
 }
 
-func Before(arr []string, substring string, inner []string) []string {
+func before(arr []string, substring string, inner []string) []string {
 	index := -1
 	for i := 0; i < len(arr); i++ {
 		if arr[i] == substring {
@@ -90,10 +153,10 @@ func Before(arr []string, substring string, inner []string) []string {
 	return start
 }
 
-func Context(arr []string, substring string, leftSide []string, rightSide []string) []string {
+func context(arr []string, substring string, leftSide []string, rightSide []string) []string {
 
-	result := After(
-		Before(arr, substring, leftSide),
+	result := after(
+		before(arr, substring, leftSide),
 		substring,
 		rightSide,
 	)
@@ -101,12 +164,12 @@ func Context(arr []string, substring string, leftSide []string, rightSide []stri
 	return result
 }
 
-func CountLines(arr []byte) int {
+func countLines(arr []byte) int {
 	lines := strings.Split(string(arr), "\n")
 	return len(lines)
 }
 
-func IgnoreCase(arr []string, substring string) int {
+func ignoreCase(arr []string, substring string) int {
 	count := 0
 
 	for i := 0; i < len(arr); i++ {
@@ -117,7 +180,7 @@ func IgnoreCase(arr []string, substring string) int {
 	return count
 }
 
-func Invert(arr []string, substring string) (bool, []string) {
+func invert(arr []string, substring string) (bool, []string) {
 	isFind := false
 	var index int
 
@@ -140,7 +203,7 @@ func Invert(arr []string, substring string) (bool, []string) {
 
 }
 
-func Fixed(arr []string, subArr []string) {
+func fixed(arr []string, subArr []string) {
 	var count int
 
 	for i := 0; i < len(arr); i++ {
@@ -158,12 +221,13 @@ func Fixed(arr []string, subArr []string) {
 	}
 }
 
-func GetLineNumber(arr []byte, substring string) int {
+func getLineNumber(arr []byte, substring string) (int, bool) {
 	lines := strings.Split(string(arr), "\n")
 	var fieldLines []string
 	isFind := false
 
 	var result int
+	err := false
 
 	for i := 0; i < len(lines); i++ {
 		fieldLines = strings.Fields(lines[i])
@@ -178,9 +242,9 @@ func GetLineNumber(arr []byte, substring string) int {
 
 	if !isFind {
 		fmt.Println("Вашего слова нет в данном тексте")
-		result = -1
+		err = true
 	}
-	return result
+	return result, err
 }
 
 func insertSubstring() string {
@@ -200,66 +264,4 @@ func (c *Command) setFlag() {
 	flag.BoolVar(&c.F, "F", false, "fixed")
 	flag.BoolVar(&c.n, "n", false, "get line numb")
 	flag.Parse()
-}
-
-func main() {
-
-	configFile, err := ioutil.ReadFile("data.txt")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	configLines := strings.Fields(string(configFile)) // разделяем каждое слово строки на элементы массива
-
-	var sub string
-
-	in := []string{"строка1", "строка2"}
-
-	subArr1 := []string{"слева1", "слева2"}
-	subArr2 := []string{"справа1", "справа2"}
-
-	forFixArr := "В большом тексте"
-
-	commands := Command{}
-	commands.setFlag()
-
-	if commands.A == true { // "after" печатать +N строк после совпадения
-		sub = insertSubstring()
-		fmt.Println("Ваш текст был успешно преобразован:")
-		configLines = After(configLines, sub, in)
-		fmt.Println(configLines)
-	} else if commands.B == true { // "before" печатать +N строк до совпадения
-		sub = insertSubstring()
-		fmt.Println("Ваш текст был успешно преобразован:")
-		configLines = Before(configLines, sub, in)
-		fmt.Println(configLines)
-	} else if commands.C == true { // "context" (A+B) печатать ±N строк вокруг совпадения
-		sub = insertSubstring()
-		configLines = Context(configLines, sub, subArr1, subArr2)
-		fmt.Println(configLines)
-	} else if commands.c == true { // "count" (количество строк)
-		fmt.Println("Количество строк: ", CountLines(configFile))
-	} else if commands.i == true { //"ignore-case" (игнорировать регистр)
-		sub = insertSubstring()
-		fmt.Println("Количество совпадений без учета регистра: ", IgnoreCase(configLines, sub))
-	} else if commands.v == true { //"invert" (вместо совпадения, исключать)
-		sub = insertSubstring()
-		isFindToInvert, _ := Invert(configLines, sub)
-		if isFindToInvert {
-			fmt.Println("Ваш текст после удаления введенной подстроки.")
-			_, configLines = Invert(configLines, sub)
-			fmt.Println(configLines)
-		} else {
-			fmt.Println("Не было найдено введенного слова для его удаления.")
-		}
-	} else if commands.F == true { //"fixed", точное совпадение со строкой, не паттерн
-		Fixed(configLines, strings.Fields(forFixArr))
-	} else if commands.n == true { //"line num", печатать номер строки
-		sub = insertSubstring()
-		fmt.Println("Ваше слово находится в строке номер: ", GetLineNumber(configFile, sub))
-	} else {
-		fmt.Println("Вы ввели несуществующую команду. Программа завершит работу...")
-	}
-
 }
