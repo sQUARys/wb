@@ -50,7 +50,6 @@ func echo(str string) string {
 }
 
 func kill() {
-	// Start a process:
 	cmd := exec.Command("sleep", "5")
 
 	err := cmd.Start()
@@ -81,7 +80,6 @@ func kill() {
 }
 
 func main() {
-
 	fmt.Print("Введите команду(можно через конвеер на пайпах):")
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -97,6 +95,7 @@ func main() {
 	commands := strings.Split(text, "|")
 
 	isTouchedBuf := false
+	var echoStr string
 
 	for i := 0; i < len(commands); i++ {
 		if strings.Contains(commands[i], "cd") {
@@ -108,16 +107,19 @@ func main() {
 			isTouchedBuf = true
 		}
 		if strings.Contains(commands[i], "echo") {
-			echoStr := strings.Split(commands[i], "'")[1]
 			if isTouchedBuf {
 				echoArr := strings.Join(buf.data, "")
 				buf.data = append(buf.data, echo(echoArr))
-				buf.data = append(buf.data, echo(echoStr))
-
 			} else {
+				if strings.Contains(commands[i], "'") {
+					echoStr = strings.Split(commands[i], "'")[1]
+				}
 				buf.data = append(buf.data, echo(echoStr))
 				isTouchedBuf = true
 			}
+		}
+		if strings.Contains(commands[i], "kill") {
+			kill()
 		}
 	}
 
