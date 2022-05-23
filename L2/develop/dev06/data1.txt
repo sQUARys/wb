@@ -1,1 +1,1 @@
-table sorts	data inascending	order as determined by
+table sorts data in ascending	order as determined by
