@@ -32,31 +32,30 @@ func (c *Command) Delimit(configFile []byte) []string {
 	return configLines
 }
 
-//func Fields(i int, arr []string, configLines []string) bool {
-//	fmt.Println("Fields...")
-//	var fields []string
-//	field, _ := strconv.Atoi(strings.Fields(arr[i])[1])
-//
-//	if field >= len(configLines) {
-//		fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
-//		return
-//	}
-//	for f := range configLines {
-//		fields = strings.Fields(configLines[f])
-//		fmt.Println(fields[field-1])
-//	}
-//}
+func (c *Command) Fields(configLines []string) {
+	fmt.Println("Fields...")
+	var fields []string
+
+	if c.f >= len(configLines) {
+		fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
+		return
+	}
+	for f := range configLines {
+		fields = strings.Fields(configLines[f])
+		fmt.Println(fields[c.f-1])
+	}
+}
 
 type Command struct {
 	d           string
-	f           bool
+	f           int
 	s           bool
 	isDelimited bool
 }
 
 func (c *Command) setFlags() {
 	flag.StringVar(&c.d, "d", "\t", "delimiter")
-	flag.BoolVar(&c.f, "f", false, "fields")
+	flag.IntVar(&c.f, "f", 0, "fields")
 	flag.BoolVar(&c.s, "s", false, "separated")
 	flag.Parse()
 }
@@ -71,31 +70,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//var configLines []string
+	var configLines []string
 
-	switch {
-	case commands.d != "":
-		arr := commands.Delimit(configFile)
-		fmt.Println(arr)
-		//case commands.f:
-		//	if !commands.isDelimited {
-		//		fmt.Println(string(configFile))
-		//		configLines = strings.Split(string(configFile), "\t") // разделяем каждое слово строки на элементы массива
-		//		fmt.Println(configLines[0])
-		//	}
-		//	Fields(configLines)
-		//case commands.s:
-		//	fmt.Println("Only-delimited...")
-		//
-		//	configLines = strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
-		//	if !commands.isDelimited {
-		//		commands.delimiter = "\t"
-		//	}
-		//	for s := range configLines {
-		//		if strings.Contains(configLines[s], commands.delimiter) {
-		//			fmt.Println(configLines[s])
-		//		}
-		//	}
+	if commands.d != "" {
+		configLines = commands.Delimit(configFile)
+		fmt.Println(configLines)
 	}
+	if commands.f != 0 {
+		commands.Fields(configLines)
+	}
+	//case commands.s:
+	//	fmt.Println("Only-delimited...")
+	//
+	//	configLines = strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
+	//	if !commands.isDelimited {
+	//		commands.delimiter = "\t"
+	//	}
+	//	for s := range configLines {
+	//		if strings.Contains(configLines[s], commands.delimiter) {
+	//			fmt.Println(configLines[s])
+	//		}
+	//	}
 
 }
