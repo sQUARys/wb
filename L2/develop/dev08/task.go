@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -15,12 +16,12 @@ import (
 
 Необходимо реализовать собственный шелл
 
-встроенные команды: cd/pwd/echo/kill/ps ps not done Доделать ps
+встроенные команды: cd/pwd/echo/kill/ps DONE
 поддержать fork/exec команды not done доделать
 конвеер на пайпах done
 
-Реализовать утилиту netcat (nc) клиент Сделать!
-принимать данные из stdin и отправлять в соединение (tcp/udp)
+Реализовать утилиту netcat (nc) клиент DONE
+принимать данные из stdin и отправлять в соединение (tcp/udp) DONE
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
@@ -79,6 +80,17 @@ func kill() {
 	}
 }
 
+func ps() {
+	PS, err := exec.LookPath("ps")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(PS)
+	command := []string{"ps", "-a", "-x"}
+	env := os.Environ()
+	err = syscall.Exec(PS, command, env)
+}
+
 func main() {
 	fmt.Print("Введите команду(можно через конвеер на пайпах):")
 
@@ -95,6 +107,7 @@ func main() {
 	commands := strings.Split(text, "|")
 
 	isTouchedBuf := false
+
 	var echoStr string
 
 	for i := 0; i < len(commands); i++ {
@@ -121,25 +134,10 @@ func main() {
 		if strings.Contains(commands[i], "kill") {
 			kill()
 		}
+		if strings.Contains(commands[i], "ps") {
+			ps()
+		}
 	}
 
 	fmt.Println(strings.Join(buf.data, " "))
-
-	//fmt.Println(pwd())
-	//cd("..")
-	//fmt.Println(pwd())
-	//fmt.Println(echo("Hello world", "How are you"))
-
-	//PS - ?
-	//matches, _ := filepath.Glob("/proc/*/exe")
-	//for _, file := range matches {
-	//	target, _ := os.Readlink(file)
-	//	fmt.Println(filepath.Base(target))
-	//
-	//	if len(target) > 0 {
-	//		fmt.Printf("%+v\n", target)
-	//	}
-	//}
-
-	//kill()
 }
