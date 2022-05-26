@@ -86,7 +86,7 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == http.MethodPost && updateEvent.MatchString(r.URL.Path):
 		fmt.Println("Post2", queryMap)
-		//h.Update(w, r)
+		h.Update(w, r)
 		return
 	case r.Method == http.MethodPost && deleteEvent.MatchString(r.URL.Path):
 		fmt.Println("Post3", queryMap)
@@ -163,8 +163,37 @@ func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	delete(h.store.m, date)
 	h.store.Unlock()
 
-	fmt.Println(h.store.m)
+	fmt.Println("DELETE , ", h.store.m)
 	w.WriteHeader(http.StatusOK)
+
+}
+
+func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
+	var u Input
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		//internalServerError(w, r)
+		return
+	}
+	jsonBytes, err := json.Marshal(u)
+
+	if err != nil {
+		//internalServerError(w, r)
+		return
+	}
+
+	date := u.ParseDate(w)
+	newEvent := EventInfo{
+		EventId:   u.ID,
+		EventName: u.Name,
+	}
+
+	h.store.Lock()
+	h.store.m[date] = newEvent
+	h.store.Unlock()
+
+	fmt.Println("Update", h.store.m)
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
 
 }
 
@@ -191,7 +220,7 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.store.m[date] = newEvent
 	h.store.Unlock()
 
-	fmt.Println(h.store.m)
+	fmt.Println("Create", h.store.m)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
 }
