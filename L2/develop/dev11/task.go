@@ -29,6 +29,8 @@ import (
 	4. Код должен проходить проверки go vet и golint.
 */
 
+//http://localhost:8080/create_event/?user_id=3&date=2019-09-09
+
 var (
 	//POST
 	createEvent = regexp.MustCompile(`^\/create_event[\/]?.+$`) // ^$ - полное совпадение должно быть
@@ -105,7 +107,7 @@ func main() {
 
 	mux.Handle("/create_event/", userH)
 	mux.Handle("/update_event/", userH)
-	mux.Handle("/deleteEvent/", userH)
+	mux.Handle("/delete_event/", userH)
 
 	http.ListenAndServe("localhost:8080", mux)
 }
