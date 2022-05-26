@@ -46,7 +46,7 @@ var (
 	dataFormat = "01/02/2006"
 )
 
-type user struct {
+type Input struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	Date string `json:"date"`
@@ -58,8 +58,13 @@ type Date struct {
 	Year  int `json:"year"`
 }
 
+type EventInfo struct {
+	EventId   string
+	EventName string
+}
+
 type datastore struct {
-	m map[Date]user
+	m map[Date]EventInfo
 	*sync.RWMutex
 }
 
@@ -109,8 +114,8 @@ func main() {
 	mux := http.NewServeMux()
 	userH := &userHandler{
 		store: &datastore{
-			m: map[Date]user{
-				{Day: 10, Month: 10, Year: 2010}: user{ID: "1", Name: "bob"},
+			m: map[Date]EventInfo{
+				{Day: 10, Month: 10, Year: 2010}: EventInfo{EventId: "1", EventName: "bob"},
 			},
 			RWMutex: &sync.RWMutex{},
 		},
@@ -127,7 +132,7 @@ func main() {
 	http.ListenAndServe("localhost:8080", mux)
 }
 
-func (u *user) ParseDate(w http.ResponseWriter) Date {
+func (u *Input) ParseDate(w http.ResponseWriter) Date {
 	currDate, errorDate := time.Parse(dataFormat, u.Date)
 
 	if errorDate != nil {
@@ -146,16 +151,11 @@ func (u *user) ParseDate(w http.ResponseWriter) Date {
 }
 
 func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var u user
+	var u Input
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		//internalServerError(w, r)
 		return
 	}
-	//day , week , month := u.ParseDate(w)
-	//h.store.Lock()
-	//h.store.m[] = u
-	//h.store.Unlock()
-
 	jsonBytes, err := json.Marshal(u)
 
 	if err != nil {
@@ -163,9 +163,17 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(u.ParseDate(w))
-	//u.ParsedDate.Day , u.ParsedDate.Month , u.ParsedDate.Year := u.ParsedDate(w)
+	date := u.ParseDate(w)
+	newEvent := EventInfo{
+		EventId:   u.ID,
+		EventName: u.Name,
+	}
 
+	h.store.Lock()
+	h.store.m[date] = newEvent
+	h.store.Unlock()
+
+	fmt.Println(h.store.m)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
 }
