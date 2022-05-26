@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -77,16 +78,16 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		//h.List(w, r)
 		return
 	case r.Method == http.MethodPost && getEventForDay.MatchString(r.URL.Path):
-		fmt.Println("Post1", queryMap)
-		//h.Create(w, r)
+		fmt.Println("Post1")
+		h.Create(w, r)
 		return
 	case r.Method == http.MethodPost && getEventForWeek.MatchString(r.URL.Path):
 		fmt.Println("Post2", queryMap)
-		//h.Create(w, r)
+		h.Create(w, r)
 		return
 	case r.Method == http.MethodPost && getEventForMonth.MatchString(r.URL.Path):
 		fmt.Println("Post3", queryMap)
-		//h.Create(w, r)
+		h.Create(w, r)
 		return
 	default:
 		//notFound(w, r)
@@ -109,5 +110,28 @@ func main() {
 	mux.Handle("/update_event/", userH)
 	mux.Handle("/delete_event/", userH)
 
+	mux.Handle("/events_for_day/", userH)
+	mux.Handle("/events_for_week/", userH)
+	mux.Handle("/events_for_month/", userH)
+
 	http.ListenAndServe("localhost:8080", mux)
+}
+
+func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var u user
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		//internalServerError(w, r)
+		return
+	}
+	h.store.Lock()
+	h.store.m[u.ID] = u
+	h.store.Unlock()
+	jsonBytes, err := json.Marshal(u)
+	fmt.Println(string(jsonBytes))
+	if err != nil {
+		//internalServerError(w, r)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
 }
