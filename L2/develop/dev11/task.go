@@ -60,28 +60,29 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	queryMap := r.Form
 	fmt.Println(queryMap, r.Method, createEvent.MatchString(r.URL.Path))
+
 	switch {
-	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
+	case r.Method == http.MethodGet && createEvent.MatchString(r.URL.Path):
 		fmt.Println("Get1", queryMap)
 		//h.List(w, r)
 		return
-	case r.Method == http.MethodGet && getEventForWeek.MatchString(r.URL.Path):
+	case r.Method == http.MethodGet && updateEvent.MatchString(r.URL.Path):
 		fmt.Println("Get2", queryMap)
 		//h.Get(w, r)
 		return
-	case r.Method == http.MethodGet && getEventForMonth.MatchString(r.URL.Path):
+	case r.Method == http.MethodGet && deleteEvent.MatchString(r.URL.Path):
 		fmt.Println("Get3", queryMap)
 		//h.List(w, r)
 		return
-	case r.Method == http.MethodPost && createEvent.MatchString(r.URL.Path):
+	case r.Method == http.MethodPost && getEventForDay.MatchString(r.URL.Path):
 		fmt.Println("Post1", queryMap)
 		//h.Create(w, r)
 		return
-	case r.Method == http.MethodPost && updateEvent.MatchString(r.URL.Path):
+	case r.Method == http.MethodPost && getEventForWeek.MatchString(r.URL.Path):
 		fmt.Println("Post2", queryMap)
 		//h.Create(w, r)
 		return
-	case r.Method == http.MethodPost && deleteEvent.MatchString(r.URL.Path):
+	case r.Method == http.MethodPost && getEventForMonth.MatchString(r.URL.Path):
 		fmt.Println("Post3", queryMap)
 		//h.Create(w, r)
 		return
