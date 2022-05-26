@@ -90,7 +90,7 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == http.MethodPost && deleteEvent.MatchString(r.URL.Path):
 		fmt.Println("Post3", queryMap)
-		//h.Delete(w, r)
+		h.Delete(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
 		fmt.Println("Get1")
@@ -148,6 +148,24 @@ func (u *Input) ParseDate(w http.ResponseWriter) Date {
 	}
 
 	return dateStruct
+}
+
+func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	var u Input
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		//internalServerError(w, r)
+		return
+	}
+
+	date := u.ParseDate(w)
+
+	h.store.Lock()
+	delete(h.store.m, date)
+	h.store.Unlock()
+
+	fmt.Println(h.store.m)
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
