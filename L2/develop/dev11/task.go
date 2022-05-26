@@ -29,24 +29,6 @@ import (
 	4. Код должен проходить проверки go vet и golint.
 */
 
-// renderJSON преобразует 'v' в формат JSON и записывает результат, в виде ответа, в w.
-//func renderJSON(w http.ResponseWriter, v interface{}) {
-//	js, err := json.Marshal(v)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusInternalServerError)
-//		return
-//	}
-//	w.Header().Set("Content-Type", "application/json")
-//	w.Write(js)
-//}
-//
-//func main() {
-//	mux := http.NewServeMux()
-//
-//	mux.HandleFunc("/task/", taskHandler())
-//}
-//package main
-
 var (
 	//POST
 	createEvent = regexp.MustCompile(`^\/create_event[\/]?.+$`) // ^$ - полное совпадение должно быть
@@ -118,73 +100,6 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func (h *userHandler) List(w http.ResponseWriter, r *http.Request) {
-//	h.store.RLock()
-//	users := make([]user, 0, len(h.store.m))
-//	for _, v := range h.store.m {
-//		users = append(users, v)
-//	}
-//	h.store.RUnlock()
-//	jsonBytes, err := json.Marshal(users)
-//	if err != nil {
-//		internalServerError(w, r)
-//		return
-//	}
-//	w.WriteHeader(http.StatusOK)
-//	w.Write(jsonBytes)
-//}
-//
-//func (h *userHandler) Get(w http.ResponseWriter, r *http.Request) {
-//	matches := getUserRe.FindStringSubmatch(r.URL.Path)
-//	if len(matches) < 2 {
-//		notFound(w, r)
-//		return
-//	}
-//	h.store.RLock()
-//	u, ok := h.store.m[matches[1]]
-//	h.store.RUnlock()
-//	if !ok {
-//		w.WriteHeader(http.StatusNotFound)
-//		w.Write([]byte("user not found"))
-//		return
-//	}
-//	jsonBytes, err := json.Marshal(u)
-//	if err != nil {
-//		internalServerError(w, r)
-//		return
-//	}
-//	w.WriteHeader(http.StatusOK)
-//	w.Write(jsonBytes)
-//}
-//
-//func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
-//	var u user
-//	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-//		internalServerError(w, r)
-//		return
-//	}
-//	h.store.Lock()
-//	h.store.m[u.ID] = u
-//	h.store.Unlock()
-//	jsonBytes, err := json.Marshal(u)
-//	if err != nil {
-//		internalServerError(w, r)
-//		return
-//	}
-//	w.WriteHeader(http.StatusOK)
-//	w.Write(jsonBytes)
-//}
-//
-//func internalServerError(w http.ResponseWriter, r *http.Request) {
-//	w.WriteHeader(http.StatusInternalServerError)
-//	w.Write([]byte("internal server error"))
-//}
-//
-//func notFound(w http.ResponseWriter, r *http.Request) {
-//	w.WriteHeader(http.StatusNotFound)
-//	w.Write([]byte("not found"))
-//}
-
 func main() {
 	mux := http.NewServeMux()
 	userH := &userHandler{
@@ -196,17 +111,13 @@ func main() {
 		},
 	}
 
-	//POST
-	//createEvent = regexp.MustCompile(`^\/create_event[\/]*$`) // ^$ - полное совпадение должно быть
-	//updateEvent = regexp.MustCompile(`^\/update_event[\/]*$`) // \d+ - одна или более цифра доступная позже
-	//deleteEvent = regexp.MustCompile(`^\/delete_event[\/]*$`) // * - жабная функция
-	////GET
-	//getEventForDay   = regexp.MustCompile(`^\/events_for_day[\/]*$`)
-	//getEventForWeek  = regexp.MustCompile(`^\/events_for_week[\/]*$`)
-	//getEventForMonth = regexp.MustCompile(`^\/events_for_month[\/]*$`)
-
 	mux.Handle("/create_event/", userH)
 	mux.Handle("/update_event/", userH)
+	mux.Handle("/deleteEvent/", userH)
+
+	mux.Handle("/getEventForDay/", userH)
+	mux.Handle("/getEventForWeek/", userH)
+	mux.Handle("/getEventForMonth/", userH)
 
 	http.ListenAndServe("localhost:8080", mux)
 }
