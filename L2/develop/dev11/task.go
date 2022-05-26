@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"sync"
+	"time"
 )
 
 /*
@@ -51,8 +52,14 @@ type user struct {
 	Date string `json:"date"`
 }
 
+type Date struct {
+	Day   int `json:"day"`
+	Month int `json:"month"`
+	Year  int `json:"year"`
+}
+
 type datastore struct {
-	m map[string]user
+	m map[Date]user
 	*sync.RWMutex
 }
 
@@ -70,27 +77,27 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodPost && createEvent.MatchString(r.URL.Path):
 		fmt.Println("Post1", queryMap)
-		//h.List(w, r)
+		h.Create(w, r)
 		return
 	case r.Method == http.MethodPost && updateEvent.MatchString(r.URL.Path):
 		fmt.Println("Post2", queryMap)
-		//h.Get(w, r)
+		//h.Update(w, r)
 		return
 	case r.Method == http.MethodPost && deleteEvent.MatchString(r.URL.Path):
 		fmt.Println("Post3", queryMap)
-		//h.List(w, r)
+		//h.Delete(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
 		fmt.Println("Get1")
-		h.Create(w, r)
+		//h.Create(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForWeek.MatchString(r.URL.Path):
 		fmt.Println("Get2", queryMap)
-		h.Create(w, r)
+		//h.Create(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForMonth.MatchString(r.URL.Path):
 		fmt.Println("Get3", queryMap)
-		h.Create(w, r)
+		//h.Create(w, r)
 		return
 	default:
 		//notFound(w, r)
@@ -102,8 +109,8 @@ func main() {
 	mux := http.NewServeMux()
 	userH := &userHandler{
 		store: &datastore{
-			m: map[string]user{
-				"1": user{ID: "1", Name: "bob"},
+			m: map[Date]user{
+				{Day: 10, Month: 10, Year: 2010}: user{ID: "1", Name: "bob"},
 			},
 			RWMutex: &sync.RWMutex{},
 		},
@@ -120,23 +127,45 @@ func main() {
 	http.ListenAndServe("localhost:8080", mux)
 }
 
+func (u *user) ParseDate(w http.ResponseWriter) Date {
+	currDate, errorDate := time.Parse(dataFormat, u.Date)
+
+	if errorDate != nil {
+		w.WriteHeader(400)
+		return Date{}
+	}
+
+	year, month, day := currDate.Date()
+	dateStruct := Date{
+		Day:   day,
+		Month: int(month),
+		Year:  year,
+	}
+
+	return dateStruct
+}
+
 func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var u user
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		//internalServerError(w, r)
 		return
 	}
-	h.store.Lock()
-	h.store.m[u.ID] = u
-	h.store.Unlock()
+	//day , week , month := u.ParseDate(w)
+	//h.store.Lock()
+	//h.store.m[] = u
+	//h.store.Unlock()
+
 	jsonBytes, err := json.Marshal(u)
 
-	fmt.Println(u.Date)
-	fmt.Println()
 	if err != nil {
 		//internalServerError(w, r)
 		return
 	}
+
+	fmt.Println(u.ParseDate(w))
+	//u.ParsedDate.Day , u.ParsedDate.Month , u.ParsedDate.Year := u.ParsedDate(w)
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
 }
