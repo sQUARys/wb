@@ -115,9 +115,5 @@ func main() {
 	mux.Handle("/update_event/", userH)
 	mux.Handle("/deleteEvent/", userH)
 
-	mux.Handle("/getEventForDay/", userH)
-	mux.Handle("/getEventForWeek/", userH)
-	mux.Handle("/getEventForMonth/", userH)
-
 	http.ListenAndServe("localhost:8080", mux)
 }
