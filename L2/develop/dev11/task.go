@@ -56,15 +56,6 @@ type userHandler struct {
 
 func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	////POST
-	//createEvent = regexp.MustCompile(`^\/create_event[\/]?.+$`) // ^$ - полное совпадение должно быть
-	//updateEvent = regexp.MustCompile(`^\/update_event[\/]?.+$`) // \d+ - одна или более цифра доступная позже
-	//deleteEvent = regexp.MustCompile(`^\/delete_event[\/]?.+$`) // * - жабная функция
-	////GET
-	//getEventForDay   = regexp.MustCompile(`^\/events_for_day[\/]$`)
-	//getEventForWeek  = regexp.MustCompile(`^\/events_for_week[\/]$`)
-	//getEventForMonth = regexp.MustCompile(`^\/events_for_month[\/]$`)
-
 	w.Header().Set("content-type", "application/json")
 	r.ParseForm()
 	queryMap := r.Form
