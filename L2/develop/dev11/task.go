@@ -118,7 +118,7 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
 		fmt.Println("Get1")
-		//h.Create(w, r)
+		h.GetEventsForDay(w, r, queryMap["date"][0])
 		return
 	case r.Method == http.MethodGet && getEventForWeek.MatchString(r.URL.Path):
 		fmt.Println("Get2", queryMap)
@@ -215,7 +215,6 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func ParseDate(w http.ResponseWriter, date string) Date {
 	currDate, errorDate := time.Parse(dataFormat, date)
-
 	if errorDate != nil {
 		w.WriteHeader(400)
 		return Date{}
@@ -231,11 +230,22 @@ func ParseDate(w http.ResponseWriter, date string) Date {
 	return dateStruct
 }
 
-//func (h *userHandler) GetEventsForDay(w http.ResponseWriter, r *http.Request, dayNumber int) {
-//	for key , value := h.store.m{
-//		date := ParseDate(w , key)
-//		if date.Day == dayNumber{
-//
-//		}
-//	}
-//}
+func (h *userHandler) GetEventsForDay(w http.ResponseWriter, r *http.Request, date string) {
+	var jsonBytes []byte
+	var err error
+	parsedDate := ParseDate(w, date)
+	fmt.Println(parsedDate)
+	for key, _ := range h.store.m {
+		if key == parsedDate {
+			jsonBytes, err = json.Marshal(h.store.m[key])
+			if err != nil {
+				//internalServerError(w, r)
+				return
+			}
+			break
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
+}
