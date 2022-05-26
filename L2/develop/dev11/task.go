@@ -41,11 +41,14 @@ var (
 	getEventForDay   = regexp.MustCompile(`^\/events_for_day[\/]$`)
 	getEventForWeek  = regexp.MustCompile(`^\/events_for_week[\/]$`)
 	getEventForMonth = regexp.MustCompile(`^\/events_for_month[\/]$`)
+	//Time
+	dataFormat = "01/02/2006"
 )
 
 type user struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	Date string `json:"date"`
 }
 
 type datastore struct {
@@ -65,28 +68,28 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(queryMap, r.Method, createEvent.MatchString(r.URL.Path))
 
 	switch {
-	case r.Method == http.MethodGet && createEvent.MatchString(r.URL.Path):
-		fmt.Println("Get1", queryMap)
+	case r.Method == http.MethodPost && createEvent.MatchString(r.URL.Path):
+		fmt.Println("Post1", queryMap)
 		//h.List(w, r)
 		return
-	case r.Method == http.MethodGet && updateEvent.MatchString(r.URL.Path):
-		fmt.Println("Get2", queryMap)
+	case r.Method == http.MethodPost && updateEvent.MatchString(r.URL.Path):
+		fmt.Println("Post2", queryMap)
 		//h.Get(w, r)
 		return
-	case r.Method == http.MethodGet && deleteEvent.MatchString(r.URL.Path):
-		fmt.Println("Get3", queryMap)
+	case r.Method == http.MethodPost && deleteEvent.MatchString(r.URL.Path):
+		fmt.Println("Post3", queryMap)
 		//h.List(w, r)
 		return
-	case r.Method == http.MethodPost && getEventForDay.MatchString(r.URL.Path):
-		fmt.Println("Post1")
+	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
+		fmt.Println("Get1")
 		h.Create(w, r)
 		return
-	case r.Method == http.MethodPost && getEventForWeek.MatchString(r.URL.Path):
-		fmt.Println("Post2", queryMap)
+	case r.Method == http.MethodGet && getEventForWeek.MatchString(r.URL.Path):
+		fmt.Println("Get2", queryMap)
 		h.Create(w, r)
 		return
-	case r.Method == http.MethodPost && getEventForMonth.MatchString(r.URL.Path):
-		fmt.Println("Post3", queryMap)
+	case r.Method == http.MethodGet && getEventForMonth.MatchString(r.URL.Path):
+		fmt.Println("Get3", queryMap)
 		h.Create(w, r)
 		return
 	default:
@@ -127,7 +130,9 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.store.m[u.ID] = u
 	h.store.Unlock()
 	jsonBytes, err := json.Marshal(u)
-	fmt.Println(string(jsonBytes))
+
+	fmt.Println(u.Date)
+	fmt.Println()
 	if err != nil {
 		//internalServerError(w, r)
 		return
