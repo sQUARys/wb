@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sync"
 	"time"
@@ -64,7 +65,7 @@ type EventInfo struct {
 }
 
 type datastore struct {
-	m map[Date]EventInfo
+	m map[Date][]EventInfo
 	*sync.RWMutex
 }
 
@@ -72,24 +73,47 @@ type userHandler struct {
 	store *datastore
 }
 
-func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func main() {
+	mux := http.NewServeMux()
+	userH := &userHandler{
+		store: &datastore{
+			m: map[Date][]EventInfo{
+				{Day: 10, Month: 10, Year: 2010}: {{EventId: "1", EventName: "bob"}},
+			},
+			RWMutex: &sync.RWMutex{},
+		},
+	}
 
+	mux.Handle("/create_event/", userH)
+	mux.Handle("/update_event/", userH)
+	mux.Handle("/delete_event/", userH)
+
+	mux.Handle("/events_for_day/", userH)
+	mux.Handle("/events_for_week/", userH)
+	mux.Handle("/events_for_month/", userH)
+
+	http.ListenAndServe("localhost:8080", mux)
+}
+
+func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	r.ParseForm()
-	queryMap := r.Form
-	fmt.Println(queryMap, r.Method, createEvent.MatchString(r.URL.Path))
+
+	var queryMap url.Values
+
+	if r.Method == http.MethodGet {
+		r.ParseForm()
+		queryMap = r.Form
+		fmt.Println(queryMap, r.Method, createEvent.MatchString(r.URL.Path))
+	}
 
 	switch {
 	case r.Method == http.MethodPost && createEvent.MatchString(r.URL.Path):
-		fmt.Println("Post1", queryMap)
 		h.Create(w, r)
 		return
 	case r.Method == http.MethodPost && updateEvent.MatchString(r.URL.Path):
-		fmt.Println("Post2", queryMap)
 		h.Update(w, r)
 		return
 	case r.Method == http.MethodPost && deleteEvent.MatchString(r.URL.Path):
-		fmt.Println("Post3", queryMap)
 		h.Delete(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
@@ -110,46 +134,6 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func main() {
-	mux := http.NewServeMux()
-	userH := &userHandler{
-		store: &datastore{
-			m: map[Date]EventInfo{
-				{Day: 10, Month: 10, Year: 2010}: EventInfo{EventId: "1", EventName: "bob"},
-			},
-			RWMutex: &sync.RWMutex{},
-		},
-	}
-
-	mux.Handle("/create_event/", userH)
-	mux.Handle("/update_event/", userH)
-	mux.Handle("/delete_event/", userH)
-
-	mux.Handle("/events_for_day/", userH)
-	mux.Handle("/events_for_week/", userH)
-	mux.Handle("/events_for_month/", userH)
-
-	http.ListenAndServe("localhost:8080", mux)
-}
-
-func (u *Input) ParseDate(w http.ResponseWriter) Date {
-	currDate, errorDate := time.Parse(dataFormat, u.Date)
-
-	if errorDate != nil {
-		w.WriteHeader(400)
-		return Date{}
-	}
-
-	year, month, day := currDate.Date()
-	dateStruct := Date{
-		Day:   day,
-		Month: int(month),
-		Year:  year,
-	}
-
-	return dateStruct
-}
-
 func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	var u Input
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
@@ -157,7 +141,7 @@ func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := u.ParseDate(w)
+	date := ParseDate(w, u.Date)
 
 	h.store.Lock()
 	delete(h.store.m, date)
@@ -181,14 +165,16 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := u.ParseDate(w)
+	date := ParseDate(w, u.Date)
 	newEvent := EventInfo{
 		EventId:   u.ID,
 		EventName: u.Name,
 	}
 
 	h.store.Lock()
-	h.store.m[date] = newEvent
+	h.store.m[date] = append(h.store.m[date], newEvent)
+
+	//h.store.m[date] = newEvent
 	h.store.Unlock()
 
 	fmt.Println("Update", h.store.m)
@@ -210,17 +196,46 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := u.ParseDate(w)
+	date := ParseDate(w, u.Date)
 	newEvent := EventInfo{
 		EventId:   u.ID,
 		EventName: u.Name,
 	}
 
 	h.store.Lock()
-	h.store.m[date] = newEvent
+	h.store.m[date] = append(h.store.m[date], newEvent)
+
+	//h.store.m[date] = newEvent
 	h.store.Unlock()
 
 	fmt.Println("Create", h.store.m)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
 }
+
+func ParseDate(w http.ResponseWriter, date string) Date {
+	currDate, errorDate := time.Parse(dataFormat, date)
+
+	if errorDate != nil {
+		w.WriteHeader(400)
+		return Date{}
+	}
+
+	year, month, day := currDate.Date()
+	dateStruct := Date{
+		Day:   day,
+		Month: int(month),
+		Year:  year,
+	}
+
+	return dateStruct
+}
+
+//func (h *userHandler) GetEventsForDay(w http.ResponseWriter, r *http.Request, dayNumber int) {
+//	for key , value := h.store.m{
+//		date := ParseDate(w , key)
+//		if date.Day == dayNumber{
+//
+//		}
+//	}
+//}
