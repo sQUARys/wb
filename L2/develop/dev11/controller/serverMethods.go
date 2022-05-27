@@ -14,7 +14,6 @@ import (
 )
 
 func ParseURL(r *http.Request) (url.Values, bool) {
-	log.Printf("Handle : ", r.URL.Path)
 	ok := true
 
 	r.ParseForm()
