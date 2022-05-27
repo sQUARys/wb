@@ -142,8 +142,7 @@ func (i *Input) isValid(option string) error {
 		validator.MustHaveId(*i)
 		validator.MustHaveName(*i)
 	case "upd":
-		validator.MustHaveId(*i)
-		validator.MustHaveName(*i)
+		validator.MustHaveNameOrId(*i)
 		validator.MustHaveDate(*i)
 	}
 	return validator.IsValid()
@@ -170,6 +169,17 @@ func (v *Validator) MustHaveName(input Input) bool {
 	}
 	if input.Name == "" {
 		v.err = fmt.Errorf("Must have a name field")
+		return false
+	}
+	return true
+}
+
+func (v *Validator) MustHaveNameOrId(input Input) bool {
+	if v.err != nil {
+		return false
+	}
+	if input.Name == "" && input.ID == "" {
+		v.err = fmt.Errorf("Must have a name or id fields")
 		return false
 	}
 	return true
