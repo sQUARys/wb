@@ -56,9 +56,9 @@ type Input struct {
 }
 
 type Date struct {
-	Day   int `json:"day"`
-	Month int `json:"month"`
-	Year  int `json:"year"`
+	Day   int
+	Month int
+	Year  int
 }
 
 type EventInfo struct {
@@ -249,6 +249,8 @@ func (h *userHandler) GetEventsForYear(w http.ResponseWriter, date string) {
 
 func serializeJson(w http.ResponseWriter, input interface{}) {
 	js, err := json.Marshal(input)
+	fmt.Println(js)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
