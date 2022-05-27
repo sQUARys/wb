@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -67,7 +69,7 @@ type EventInfo struct {
 }
 
 type datastore struct {
-	m map[Date][]EventInfo `json:"event-info-arr"`
+	m map[string][]EventInfo `json:"event-info-arr"`
 	*sync.RWMutex
 }
 
@@ -79,8 +81,8 @@ func main() {
 	mux := http.NewServeMux()
 	userH := &userHandler{
 		store: &datastore{
-			m: map[Date][]EventInfo{
-				{Day: 10, Month: 10, Year: 2010}: {{EventId: "1", EventName: "bob"}},
+			m: map[string][]EventInfo{
+				"10/10/2010": {{EventId: "1", EventName: "bob"}},
 			},
 			RWMutex: &sync.RWMutex{},
 		},
@@ -141,7 +143,7 @@ func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := ParseDate(w, u.Date)
+	date := ParseDateToString(w, u.Date)
 
 	h.store.Lock()
 	delete(h.store.m, date)
@@ -159,7 +161,7 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := ParseDate(w, u.Date)
+	date := ParseDateToString(w, u.Date)
 	newEvent := EventInfo{
 		EventId:   u.ID,
 		EventName: u.Name,
@@ -180,7 +182,7 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := ParseDate(w, u.Date)
+	date := ParseDateToString(w, u.Date)
 
 	newEvent := EventInfo{
 		EventId:   u.ID,
@@ -211,9 +213,29 @@ func ParseDate(w http.ResponseWriter, date string) Date {
 	return dateStruct
 }
 
+func ParseDateToString(w http.ResponseWriter, date string) string {
+	currDate, errorDate := time.Parse(dataFormat, date)
+	if errorDate != nil {
+		w.WriteHeader(400)
+		return ""
+	}
+
+	year, day, month := currDate.Date()
+	dayStr := strconv.Itoa(int(day))
+	monthStr := strconv.Itoa(month)
+	yearStr := strconv.Itoa(year)
+	if len(dayStr) == 1 {
+		dayStr = "0" + dayStr
+	}
+	if len(monthStr) == 1 {
+		monthStr = "0" + monthStr
+	}
+	str := []string{dayStr, monthStr, yearStr}
+	return strings.Join(str, "/")
+}
+
 func (h *userHandler) GetEventsForDay(w http.ResponseWriter, date string) {
-	parsedDate := ParseDate(w, date)
-	fmt.Println(parsedDate)
+	parsedDate := ParseDateToString(w, date)
 	for key, _ := range h.store.m {
 		if key == parsedDate {
 			serializeJson(w, h.store.m[key])
@@ -226,7 +248,8 @@ func (h *userHandler) GetEventsForMonth(w http.ResponseWriter, date string) {
 	var memory [][]EventInfo
 	parsedDate := ParseDate(w, date)
 	for key, _ := range h.store.m {
-		if key.Month == parsedDate.Month && parsedDate.Year == key.Year {
+		parsedKey := ParseDate(w, key)
+		if parsedKey.Month == parsedDate.Month && parsedDate.Year == parsedKey.Year {
 			memory = append(memory, h.store.m[key])
 		}
 	}
@@ -239,7 +262,8 @@ func (h *userHandler) GetEventsForYear(w http.ResponseWriter, date string) {
 	parsedDate := ParseDate(w, date)
 
 	for key, _ := range h.store.m {
-		if parsedDate.Year == key.Year {
+		parsedKey := ParseDate(w, key)
+		if parsedDate.Year == parsedKey.Year {
 			memory = append(memory, h.store.m[key])
 		}
 	}
@@ -249,7 +273,6 @@ func (h *userHandler) GetEventsForYear(w http.ResponseWriter, date string) {
 
 func serializeJson(w http.ResponseWriter, input interface{}) {
 	js, err := json.Marshal(input)
-	fmt.Println(js)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
