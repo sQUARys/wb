@@ -15,9 +15,9 @@ import (
 
 Реализовать HTTP сервер для работы с календарем. В рамках задания необходимо работать строго со стандартной HTTP библиотекой.
 В рамках задания необходимо:
-	1. Реализовать вспомогательные функции для сериализации объектов доменной области в JSON.
+	1. Реализовать вспомогательные функции для сериализации объектов доменной области в JSON. DONE
 	2. Реализовать вспомогательные функции для парсинга и валидации параметров методов /create_event и /update_event.
-	3. Реализовать HTTP обработчики для каждого из методов API, используя вспомогательные функции и объекты доменной области.
+	3. Реализовать HTTP обработчики для каждого из методов API, используя вспомогательные функции и объекты доменной области. DONE
 	4. Реализовать middleware для логирования запросов
 Методы API: POST /create_event POST /update_event POST /delete_event GET /events_for_day GET /events_for_week GET /events_for_month
 Параметры передаются в виде www-url-form-encoded (т.е. обычные user_id=3&date=2019-09-09).
@@ -28,7 +28,9 @@ import (
 В рамках задачи необходимо:
 	1. Реализовать все методы.
 	2. Бизнес логика НЕ должна зависеть от кода HTTP сервера.
-	3. В случае ошибки бизнес-логики сервер должен возвращать HTTP 503. В случае ошибки входных данных (невалидный int например) сервер должен возвращать HTTP 400. В случае остальных ошибок сервер должен возвращать HTTP 500. Web-сервер должен запускаться на порту указанном в конфиге и выводить в лог каждый обработанный запрос.
+	3. В случае ошибки бизнес-логики сервер должен возвращать HTTP 503. В случае ошибки входных данных (невалидный int например) сервер должен возвращать HTTP 400.
+В случае остальных ошибок сервер должен возвращать HTTP 500.
+Web-сервер должен запускаться на порту указанном в конфиге и выводить в лог каждый обработанный запрос.
 	4. Код должен проходить проверки go vet и golint.
 */
 
@@ -65,7 +67,7 @@ type EventInfo struct {
 }
 
 type datastore struct {
-	m map[Date][]EventInfo
+	m map[Date][]EventInfo `json:"event-info-arr"`
 	*sync.RWMutex
 }
 
@@ -98,13 +100,6 @@ func main() {
 func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
-	var queryMap url.Values
-
-	if r.Method == http.MethodGet {
-		r.ParseForm()
-		queryMap = r.Form
-	}
-
 	switch {
 	case r.Method == http.MethodPost && createEvent.MatchString(r.URL.Path):
 		h.Create(w, r)
@@ -116,18 +111,27 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Delete(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
-		h.GetEventsForDay(w, queryMap["date"][0])
+		date := ParseURL(r)["date"][0]
+		h.GetEventsForDay(w, date)
 		return
 	case r.Method == http.MethodGet && getEventForMonth.MatchString(r.URL.Path):
-		h.GetEventsForMonth(w, queryMap["date"][0])
+		date := ParseURL(r)["date"][0]
+		h.GetEventsForMonth(w, date)
 		return
 	case r.Method == http.MethodGet && getEventForYear.MatchString(r.URL.Path):
-		h.GetEventsForYear(w, queryMap["date"][0])
+		date := ParseURL(r)["date"][0]
+		h.GetEventsForYear(w, date)
 		return
 	default:
 		//notFound(w, r)
 		return
 	}
+}
+
+func ParseURL(r *http.Request) url.Values {
+	r.ParseForm()
+	queryMap := r.Form
+	return queryMap
 }
 
 func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -144,19 +148,13 @@ func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	h.store.Unlock()
 
 	fmt.Println("DELETE , ", h.store.m)
-	w.WriteHeader(http.StatusOK)
+	serializeJson(w, h.store.m)
 
 }
 
 func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var u Input
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		//internalServerError(w, r)
-		return
-	}
-	jsonBytes, err := json.Marshal(u)
-
-	if err != nil {
 		//internalServerError(w, r)
 		return
 	}
@@ -169,25 +167,15 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.store.Lock()
 	h.store.m[date] = append(h.store.m[date], newEvent)
-
-	//h.store.m[date] = newEvent
 	h.store.Unlock()
 
 	fmt.Println("Update", h.store.m)
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
-
+	serializeJson(w, h.store.m)
 }
 
 func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var u Input
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		//internalServerError(w, r)
-		return
-	}
-	jsonBytes, err := json.Marshal(u)
-
-	if err != nil {
 		//internalServerError(w, r)
 		return
 	}
@@ -204,8 +192,7 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.store.Unlock()
 
 	fmt.Println("Create", h.store.m)
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	serializeJson(w, h.store.m)
 }
 
 func ParseDate(w http.ResponseWriter, date string) Date {
@@ -225,28 +212,17 @@ func ParseDate(w http.ResponseWriter, date string) Date {
 }
 
 func (h *userHandler) GetEventsForDay(w http.ResponseWriter, date string) {
-	var jsonBytes []byte
-	var err error
 	parsedDate := ParseDate(w, date)
 	fmt.Println(parsedDate)
 	for key, _ := range h.store.m {
 		if key == parsedDate {
-			jsonBytes, err = json.Marshal(h.store.m[key])
-			if err != nil {
-				//internalServerError(w, r)
-				return
-			}
+			serializeJson(w, h.store.m[key])
 			break
 		}
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
 }
 
 func (h *userHandler) GetEventsForMonth(w http.ResponseWriter, date string) {
-	var jsonBytes []byte
-	var err error
 	var memory [][]EventInfo
 	parsedDate := ParseDate(w, date)
 	for key, _ := range h.store.m {
@@ -254,19 +230,11 @@ func (h *userHandler) GetEventsForMonth(w http.ResponseWriter, date string) {
 			memory = append(memory, h.store.m[key])
 		}
 	}
-	jsonBytes, err = json.Marshal(memory)
-	if err != nil {
-		//internalServerError(w, r)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	serializeJson(w, memory)
 }
 
 func (h *userHandler) GetEventsForYear(w http.ResponseWriter, date string) {
-	var jsonBytes []byte
-	var err error
+
 	var memory [][]EventInfo
 	parsedDate := ParseDate(w, date)
 
@@ -276,12 +244,15 @@ func (h *userHandler) GetEventsForYear(w http.ResponseWriter, date string) {
 		}
 	}
 
-	jsonBytes, err = json.Marshal(memory)
+	serializeJson(w, memory)
+}
+
+func serializeJson(w http.ResponseWriter, input interface{}) {
+	js, err := json.Marshal(input)
 	if err != nil {
-		//internalServerError(w, r)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	w.Write(js)
 }
