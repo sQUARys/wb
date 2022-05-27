@@ -132,10 +132,20 @@ type Validator struct {
 	err error
 }
 
-func (i *Input) isValid() error {
+func (i *Input) isValid(option string) error {
 	validator := Validator{}
-	validator.MustHaveId(*i)
-	validator.MustHaveName(*i)
+
+	switch option {
+	case "del":
+		validator.MustHaveDate(*i)
+	case "crt":
+		validator.MustHaveId(*i)
+		validator.MustHaveName(*i)
+	case "upd":
+		validator.MustHaveId(*i)
+		validator.MustHaveName(*i)
+		validator.MustHaveDate(*i)
+	}
 	return validator.IsValid()
 }
 
@@ -160,6 +170,17 @@ func (v *Validator) MustHaveName(input Input) bool {
 	}
 	if input.Name == "" {
 		v.err = fmt.Errorf("Must have a name field")
+		return false
+	}
+	return true
+}
+
+func (v *Validator) MustHaveDate(input Input) bool {
+	if v.err != nil {
+		return false
+	}
+	if input.Date == "" {
+		v.err = fmt.Errorf("Must have a date field")
 		return false
 	}
 	return true
@@ -229,6 +250,12 @@ func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	valid := u.isValid("del")
+	if valid != nil {
+		log.Fatal(valid)
+		return
+	}
+
 	date := ParseDateToString(w, u.Date)
 
 	h.store.Lock()
@@ -244,6 +271,12 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var u Input
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		//internalServerError(w, r)
+		return
+	}
+
+	valid := u.isValid("upd")
+	if valid != nil {
+		log.Fatal(valid)
 		return
 	}
 
@@ -268,8 +301,9 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if u.isValid() != nil {
-		log.Fatal(u.isValid())
+	valid := u.isValid("crt")
+	if valid != nil {
+		log.Fatal(valid)
 		return
 	}
 
