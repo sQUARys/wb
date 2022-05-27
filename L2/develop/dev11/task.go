@@ -26,15 +26,11 @@ Web-сервер должен запускаться на порту указа�
 
 //http://localhost:8080/create_event/?user_id=3&date=2019-09-09
 
-// Сделать валидацию параметров методов  /create_event и /update_event.
-// Разобраться что такое бизнес логика
-
 import (
 	"dev11/controller"
 )
 
 func main() {
-	controller.ControllerHandler()
+	userH := controller.New()
+	userH.ControllerHandler()
 }
-
-//Server methods

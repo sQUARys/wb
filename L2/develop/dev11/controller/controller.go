@@ -31,16 +31,23 @@ type UserHandler struct {
 	Store *Datastore
 }
 
-func ControllerHandler() {
-	mux := http.NewServeMux()
-	userH := &UserHandler{
+func New() UserHandler {
+	items := map[string][]structs.EventInfo{
+		"10/10/2010": {{EventId: "1", EventName: "bob"}},
+	}
+
+	uh := UserHandler{
 		Store: &Datastore{
-			M: map[string][]structs.EventInfo{
-				"10/10/2010": {{EventId: "1", EventName: "bob"}},
-			},
+			M:       items,
 			RWMutex: &sync.RWMutex{},
 		},
 	}
+
+	return uh
+}
+
+func (userH *UserHandler) ControllerHandler() {
+	mux := http.NewServeMux()
 
 	mux.Handle("/create_event/", userH)
 	mux.Handle("/update_event/", userH)
@@ -53,7 +60,6 @@ func ControllerHandler() {
 	wrappedMux := middleware.NewLogger(mux)
 
 	log.Fatal(http.ListenAndServe("localhost:8080", wrappedMux))
-
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
