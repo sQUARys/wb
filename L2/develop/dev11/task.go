@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -20,7 +21,7 @@ import (
 	1. Реализовать вспомогательные функции для сериализации объектов доменной области в JSON. DONE
 	2. Реализовать вспомогательные функции для парсинга и валидации параметров методов /create_event и /update_event.
 	3. Реализовать HTTP обработчики для каждого из методов API, используя вспомогательные функции и объекты доменной области. DONE
-	4. Реализовать middleware для логирования запросов
+	4. Реализовать middleware для логирования запросов DONE
 Методы API: POST /create_event POST /update_event POST /delete_event GET /events_for_day GET /events_for_week GET /events_for_month
 Параметры передаются в виде www-url-form-encoded (т.е. обычные user_id=3&date=2019-09-09).
 В GET методах параметры передаются через querystring, в POST через тело запроса.
@@ -96,8 +97,32 @@ func main() {
 	mux.Handle("/events_for_year/", userH)
 	mux.Handle("/events_for_month/", userH)
 
-	http.ListenAndServe("localhost:8080", mux)
+	wrappedMux := NewLogger(mux)
+
+	log.Fatal(http.ListenAndServe("localhost:8080", wrappedMux))
+
 }
+
+//Logging middleware
+
+type Logger struct {
+	handler http.Handler
+}
+
+//ServeHTTP handles the request by passing it to the real
+//handler and logging the request details
+func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	l.handler.ServeHTTP(w, r)
+	log.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
+}
+
+//NewLogger constructs a new Logger middleware handler
+func NewLogger(handlerToWrap http.Handler) *Logger {
+	return &Logger{handlerToWrap}
+}
+
+//Server methods
 
 func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
@@ -113,16 +138,28 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Delete(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
-		date := ParseURL(r)["date"][0]
-		h.GetEventsForDay(w, date)
+		date, ok := ParseURL(r)
+		if !ok {
+			log.Print("Your body of request is empty")
+			break
+		}
+		h.GetEventsForDay(w, date["date"][0])
 		return
 	case r.Method == http.MethodGet && getEventForMonth.MatchString(r.URL.Path):
-		date := ParseURL(r)["date"][0]
-		h.GetEventsForMonth(w, date)
+		date, ok := ParseURL(r)
+		if !ok {
+			log.Print("Your body of request is empty")
+			break
+		}
+		h.GetEventsForMonth(w, date["date"][0])
 		return
 	case r.Method == http.MethodGet && getEventForYear.MatchString(r.URL.Path):
-		date := ParseURL(r)["date"][0]
-		h.GetEventsForYear(w, date)
+		date, ok := ParseURL(r)
+		if !ok {
+			log.Print("Your body of request is empty")
+			break
+		}
+		h.GetEventsForYear(w, date["date"][0])
 		return
 	default:
 		//notFound(w, r)
@@ -130,10 +167,16 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ParseURL(r *http.Request) url.Values {
+func ParseURL(r *http.Request) (url.Values, bool) {
+	log.Printf("Handle : ", r.URL.Path)
+	ok := true
+
 	r.ParseForm()
 	queryMap := r.Form
-	return queryMap
+	if len(queryMap) == 0 {
+		ok = false
+	}
+	return queryMap, ok
 }
 
 func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
