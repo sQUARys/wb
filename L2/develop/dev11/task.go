@@ -41,10 +41,10 @@ var (
 	deleteEvent = regexp.MustCompile(`^\/delete_event[\/]?.+$`) // * - жабная функция
 	//GET
 	getEventForDay   = regexp.MustCompile(`^\/events_for_day[\/]$`)
-	getEventForWeek  = regexp.MustCompile(`^\/events_for_week[\/]$`)
+	getEventForYear  = regexp.MustCompile(`^\/events_for_year[\/]$`)
 	getEventForMonth = regexp.MustCompile(`^\/events_for_month[\/]$`)
 	//Time
-	dataFormat = "01/02/2006"
+	dataFormat = "01/02/2006" // day / month/year
 )
 
 type Input struct {
@@ -60,8 +60,8 @@ type Date struct {
 }
 
 type EventInfo struct {
-	EventId   string
-	EventName string
+	EventId   string `json:"event-id"`
+	EventName string `json:"event-name"`
 }
 
 type datastore struct {
@@ -89,7 +89,7 @@ func main() {
 	mux.Handle("/delete_event/", userH)
 
 	mux.Handle("/events_for_day/", userH)
-	mux.Handle("/events_for_week/", userH)
+	mux.Handle("/events_for_year/", userH)
 	mux.Handle("/events_for_month/", userH)
 
 	http.ListenAndServe("localhost:8080", mux)
@@ -103,7 +103,6 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		r.ParseForm()
 		queryMap = r.Form
-		fmt.Println(queryMap, r.Method, createEvent.MatchString(r.URL.Path))
 	}
 
 	switch {
@@ -117,16 +116,13 @@ func (h *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Delete(w, r)
 		return
 	case r.Method == http.MethodGet && getEventForDay.MatchString(r.URL.Path):
-		fmt.Println("Get1")
-		h.GetEventsForDay(w, r, queryMap["date"][0])
-		return
-	case r.Method == http.MethodGet && getEventForWeek.MatchString(r.URL.Path):
-		fmt.Println("Get2", queryMap)
-		//h.Create(w, r)
+		h.GetEventsForDay(w, queryMap["date"][0])
 		return
 	case r.Method == http.MethodGet && getEventForMonth.MatchString(r.URL.Path):
-		fmt.Println("Get3", queryMap)
-		//h.Create(w, r)
+		h.GetEventsForMonth(w, queryMap["date"][0])
+		return
+	case r.Method == http.MethodGet && getEventForYear.MatchString(r.URL.Path):
+		h.GetEventsForYear(w, queryMap["date"][0])
 		return
 	default:
 		//notFound(w, r)
@@ -197,6 +193,7 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	date := ParseDate(w, u.Date)
+
 	newEvent := EventInfo{
 		EventId:   u.ID,
 		EventName: u.Name,
@@ -204,8 +201,6 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.store.Lock()
 	h.store.m[date] = append(h.store.m[date], newEvent)
-
-	//h.store.m[date] = newEvent
 	h.store.Unlock()
 
 	fmt.Println("Create", h.store.m)
@@ -220,17 +215,16 @@ func ParseDate(w http.ResponseWriter, date string) Date {
 		return Date{}
 	}
 
-	year, month, day := currDate.Date()
+	year, day, month := currDate.Date()
 	dateStruct := Date{
-		Day:   day,
-		Month: int(month),
+		Day:   int(day),
+		Month: month,
 		Year:  year,
 	}
-
 	return dateStruct
 }
 
-func (h *userHandler) GetEventsForDay(w http.ResponseWriter, r *http.Request, date string) {
+func (h *userHandler) GetEventsForDay(w http.ResponseWriter, date string) {
 	var jsonBytes []byte
 	var err error
 	parsedDate := ParseDate(w, date)
@@ -244,6 +238,48 @@ func (h *userHandler) GetEventsForDay(w http.ResponseWriter, r *http.Request, da
 			}
 			break
 		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
+}
+
+func (h *userHandler) GetEventsForMonth(w http.ResponseWriter, date string) {
+	var jsonBytes []byte
+	var err error
+	var memory [][]EventInfo
+	parsedDate := ParseDate(w, date)
+	for key, _ := range h.store.m {
+		if key.Month == parsedDate.Month && parsedDate.Year == key.Year {
+			memory = append(memory, h.store.m[key])
+		}
+	}
+	jsonBytes, err = json.Marshal(memory)
+	if err != nil {
+		//internalServerError(w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
+}
+
+func (h *userHandler) GetEventsForYear(w http.ResponseWriter, date string) {
+	var jsonBytes []byte
+	var err error
+	var memory [][]EventInfo
+	parsedDate := ParseDate(w, date)
+
+	for key, _ := range h.store.m {
+		if parsedDate.Year == key.Year {
+			memory = append(memory, h.store.m[key])
+		}
+	}
+
+	jsonBytes, err = json.Marshal(memory)
+	if err != nil {
+		//internalServerError(w, r)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
