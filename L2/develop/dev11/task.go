@@ -68,8 +68,9 @@ type Date struct {
 }
 
 type EventInfo struct {
-	EventId   string `json:"event-id"`
-	EventName string `json:"event-name"`
+	EventId    string `json:"event-id"`
+	EventName  string `json:"event-name"`
+	EventDescr string `json:"event-name, omitempty"`
 }
 
 type datastore struct {
@@ -123,6 +124,45 @@ func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //NewLogger constructs a new Logger middleware handler
 func NewLogger(handlerToWrap http.Handler) *Logger {
 	return &Logger{handlerToWrap}
+}
+
+//Validation
+
+type Validator struct {
+	err error
+}
+
+func (i *Input) isValid() error {
+	validator := Validator{}
+	validator.MustHaveId(*i)
+	validator.MustHaveName(*i)
+	return validator.IsValid()
+}
+
+func (v *Validator) IsValid() error {
+	return v.err
+}
+
+func (v *Validator) MustHaveId(input Input) bool {
+	if v.err != nil {
+		return false
+	}
+	if input.ID == "" {
+		v.err = fmt.Errorf("Must have an id field")
+		return false
+	}
+	return true
+}
+
+func (v *Validator) MustHaveName(input Input) bool {
+	if v.err != nil {
+		return false
+	}
+	if input.Name == "" {
+		v.err = fmt.Errorf("Must have a name field")
+		return false
+	}
+	return true
 }
 
 //Server methods
@@ -225,6 +265,11 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var u Input
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		//internalServerError(w, r)
+		return
+	}
+
+	if u.isValid() != nil {
+		log.Fatal(u.isValid())
 		return
 	}
 
