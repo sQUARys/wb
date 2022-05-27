@@ -45,7 +45,7 @@ func unPack(str string) string {
 			for i := 0; i < number; i++ {
 				result += string(memory)
 			}
-		} else if !unicode.IsDigit(element) && isLetter { // если предыдущее  - строка , нынешнее - строка
+		} else if !unicode.IsDigit(element) && isLetter { // если предыдущее - строка , нынешнее - строка
 			result += string(memory)
 		} else if unicode.IsDigit(element) && !isLetter { // если предыдущее -число, нынешнее - число
 			result = ""
