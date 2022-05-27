@@ -100,7 +100,7 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.GetEventsForYear(w, date["date"][0])
 		return
 	default:
-		//notFound(w, r)
+		NotFound(w, r)
 		return
 	}
 }

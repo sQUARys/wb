@@ -34,6 +34,7 @@ func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	if valid != nil {
 		log.Fatal(valid)
+		internalServerError(w, r)
 		return
 	}
 
@@ -58,6 +59,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	valid := validator.IsValid("upd", u)
 	if valid != nil {
 		log.Fatal(valid)
+		internalServerError(w, r)
 		return
 	}
 
@@ -85,6 +87,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	valid := validator.IsValid("crt", u)
 	if valid != nil {
 		log.Fatal(valid)
+		internalServerError(w, r)
 		return
 	}
 
@@ -186,4 +189,14 @@ func serializeJson(w http.ResponseWriter, input interface{}) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
+}
+
+func NotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("not found"))
+}
+
+func internalServerError(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte("internal server error"))
 }
