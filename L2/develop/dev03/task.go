@@ -35,14 +35,31 @@ import (
 func main() {
 	str := []string{"", "4", "", "1", "2"}
 
-	commands := Command{}
-	commands.flagSet()
-	commands.input = str
+	commands := Command{} // создаем пустую структуру
+	commands.flagSet()    // считываем из командной строки
+	commands.input = str  // вводим наш массив данных
 
 	commands.sort()
 }
 
-func (c Command) sort() {
+type Command struct {
+	input []string
+	k     int
+	n     bool
+	r     bool
+	u     bool
+}
+
+func (c *Command) flagSet() { // считывание с командной строки
+	flag.IntVar(&c.k, "k", -1, "Column")
+	flag.BoolVar(&c.n, "n", false, "sorting by int value")
+	flag.BoolVar(&c.r, "r", false, "reverse sorting")
+	flag.BoolVar(&c.u, "u", false, "sorting without repeated")
+
+	flag.Parse()
+}
+
+func (c Command) sort() { // функция выбора в зависимости от ввода типа сортировка
 	if c.n == true {
 		fmt.Println(sortByNumber(c.input)) //отсортировать по числовому значению
 	}
@@ -57,43 +74,26 @@ func (c Command) sort() {
 	}
 }
 
-type Command struct {
-	input []string
-	k     int
-	n     bool
-	r     bool
-	u     bool
-}
-
-func (c *Command) flagSet() {
-	flag.IntVar(&c.k, "k", -1, "Column")
-	flag.BoolVar(&c.n, "n", false, "sorting by int value")
-	flag.BoolVar(&c.r, "r", false, "reverse sorting")
-	flag.BoolVar(&c.u, "u", false, "sorting without repeated")
-
-	flag.Parse()
-}
-
 func reverse(sl []string) []string {
-	sort.Strings(sl)
-	sort.Sort(sort.Reverse(sort.StringSlice(sl)))
+	sort.Strings(sl)                              // сортируем по порядку
+	sort.Sort(sort.Reverse(sort.StringSlice(sl))) // переворачиваем
 	return sl
 }
 
 func sortWithoutRepeat(sl []string) []string {
 	var mem []string
-	sort.Strings(sl)
+	sort.Strings(sl) // сортируем маcсив строк
 	for i := range sl {
 		if len(mem) == sort.SearchStrings(mem, sl[i]) { // если не найдено такой строки
-			mem = append(mem, sl[i])
+			mem = append(mem, sl[i]) // добавляем уникальное слово
 		}
 	}
 	return mem
 }
 
 func sortBySpecialColumn(sl []string, k int) []string {
-	sort.Slice(sl, func(i, j int) bool {
-		if k >= len(sl[i]) || k >= len(sl[j]) {
+	sort.Slice(sl, func(i, j int) bool { // функция для сортировки
+		if k >= len(sl[i]) || k >= len(sl[j]) { // если длинна меньше введеной колонны не меняем местами
 			return false
 		}
 		return sl[i][k] < sl[j][k]
@@ -103,11 +103,11 @@ func sortBySpecialColumn(sl []string, k int) []string {
 
 func sortByNumber(sl []string) []string {
 	sort.Slice(sl, func(i, j int) bool {
-		val1, error := strconv.Atoi(sl[i])
+		val1, error := strconv.Atoi(sl[i]) // переводим первую строку в число
 		if error != nil {
 			fmt.Println("Error: ", error)
 		}
-		val2, err := strconv.Atoi(sl[j])
+		val2, err := strconv.Atoi(sl[j]) // переводим вторую строку в число
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
