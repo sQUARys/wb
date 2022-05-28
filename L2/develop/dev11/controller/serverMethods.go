@@ -26,15 +26,20 @@ func ParseURL(r *http.Request) (url.Values, bool) {
 
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	var u structs.Input
+
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		//internalServerError(w, r)
 		return
 	}
-	valid := validator.IsValid("del", u)
 
+	if !isValidJSON(w, u) {
+		return
+	}
+
+	valid := validator.IsValid("del", u)
 	if valid != nil {
 		log.Fatal(valid)
-		internalServerError(w, r)
+		internalServerError(w)
 		return
 	}
 
@@ -56,10 +61,14 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isValidJSON(w, u) {
+		return
+	}
+
 	valid := validator.IsValid("upd", u)
 	if valid != nil {
 		log.Fatal(valid)
-		internalServerError(w, r)
+		internalServerError(w)
 		return
 	}
 
@@ -79,15 +88,20 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var u structs.Input
+
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		//internalServerError(w, r)
+		internalServerError(w)
+		return
+	}
+
+	if !isValidJSON(w, u) {
 		return
 	}
 
 	valid := validator.IsValid("crt", u)
 	if valid != nil {
 		log.Fatal(valid)
-		internalServerError(w, r)
+		internalServerError(w)
 		return
 	}
 
@@ -187,16 +201,29 @@ func serializeJson(w http.ResponseWriter, input interface{}) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
 }
 
-func NotFound(w http.ResponseWriter, r *http.Request) {
+func NotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte("not found"))
 }
 
-func internalServerError(w http.ResponseWriter, r *http.Request) {
+func internalServerError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("internal server error"))
+}
+
+func isValidJSON(w http.ResponseWriter, js structs.Input) bool {
+	val, errInt := strconv.Atoi(js.ID)
+
+	if errInt != nil || val <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Id field is invalid int."))
+		return false
+	}
+
+	return true
 }
