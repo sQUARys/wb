@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	message := task.GetTime()
-	fmt.Println(message)
+	message := task.GetTime() // вызываем функция из нашего модуля
+	fmt.Println(message)      // выводим результат
 }
