@@ -27,7 +27,7 @@ import (
 
 func main() {
 
-	configFile, err := ioutil.ReadFile("data.txt")
+	configFile, err := ioutil.ReadFile("data.txt") // считываем данные из файла
 
 	if err != nil {
 		log.Fatal(err)
@@ -37,8 +37,8 @@ func main() {
 
 	var sub string
 
+	// устанавливаем какие слова хотим вставить
 	in := []string{"строка1", "строка2"}
-
 	subArr1 := []string{"слева1", "слева2"}
 	subArr2 := []string{"справа1", "справа2"}
 
@@ -48,26 +48,25 @@ func main() {
 	commands.setFlag()
 
 	switch {
-	case commands.A:
-		sub = insertSubstring()
+	case commands.A: //"after" печатать +N строк после совпадения Done
+		sub = insertSubstring() // считываем ввод пользователя
 		configLines = after(configLines, sub, in)
 		fmt.Println(configLines)
 	case commands.B: // "before" печатать +N строк до совпадения
-		sub = insertSubstring()
+		sub = insertSubstring() // считываем ввод пользователя
 		configLines = before(configLines, sub, in)
 		fmt.Println(configLines)
 	case commands.C: // "context" (A+B) печатать ±N строк вокруг совпадения
-		sub = insertSubstring()
+		sub = insertSubstring() // считываем ввод пользователя
 		configLines = context(configLines, sub, subArr1, subArr2)
 		fmt.Println(configLines)
 	case commands.c: // "count" (количество строк)
 		fmt.Println(countLines(configFile))
-
 	case commands.i: //"ignore-case" (игнорировать регистр)
-		sub = insertSubstring()
+		sub = insertSubstring() // считываем ввод пользователя
 		fmt.Println(ignoreCase(configLines, sub))
 	case commands.v: //"invert" (вместо совпадения, исключать)
-		sub = insertSubstring()
+		sub = insertSubstring() // считываем ввод пользователя
 		isFindToInvert, _ := invert(configLines, sub)
 		if isFindToInvert {
 			_, configLines = invert(configLines, sub)
@@ -76,7 +75,7 @@ func main() {
 	case commands.F: //"fixed", точное совпадение со строкой, не паттерн
 		fixed(configLines, strings.Fields(forFixArr))
 	case commands.n: //"line num", печатать номер строки
-		sub = insertSubstring()
+		sub = insertSubstring() // считываем ввод пользователя
 		number, err := getLineNumber(configFile, sub)
 		if err {
 			break
@@ -109,30 +108,31 @@ func (c *Command) setFlag() {
 	flag.BoolVar(&c.n, "n", false, "get line numb")
 	flag.Parse()
 }
+
 func after(arr []string, substring string, inner []string) []string {
-	index := -1
+	index := -1 // переменная для хранения индекса
 
 	for i := 0; i < len(arr); i++ {
-		if arr[i] == substring {
+		if arr[i] == substring { // если найдено слово, которое искал пользователь
 			index = i
 			break
 		}
 	}
-	if index == -1 {
+	if index == -1 { // если слово не найдено
 		return []string{""}
 	}
 
-	start := make([]string, len(arr[:index+1]))
+	start := make([]string, len(arr[:index+1])) // делим массив на два: до слова и после
 	end := make([]string, len(arr[index+1:]))
-	copy(start, arr[:index+1])
+	copy(start, arr[:index+1]) // избавляемся от зависимости
 	copy(end, arr[index+1:])
 
 	for j := 0; j < len(inner); j++ {
-		start = append(start, inner[j])
+		start = append(start, inner[j]) // заполняем массив со вставками вместе "после"
 	}
 
 	for i := 0; i < len(end); i++ {
-		start = append(start, end[i])
+		start = append(start, end[i]) // дополняем массив оставшимися элементами
 	}
 	return start
 }
@@ -165,26 +165,25 @@ func before(arr []string, substring string, inner []string) []string {
 }
 
 func context(arr []string, substring string, leftSide []string, rightSide []string) []string {
-
 	result := after(
 		before(arr, substring, leftSide),
 		substring,
 		rightSide,
-	)
+	) // делаем двойную вставку до и после с уже написанными функциями
 
 	return result
 }
 
 func countLines(arr []byte) int {
-	lines := strings.Split(string(arr), "\n")
-	return len(lines)
+	lines := strings.Split(string(arr), "\n") // делим массив по \n
+	return len(lines)                         // считаем длину строк
 }
 
 func ignoreCase(arr []string, substring string) int {
 	count := 0
 
 	for i := 0; i < len(arr); i++ {
-		if strings.ToLower(arr[i]) == strings.ToLower(substring) {
+		if strings.ToLower(arr[i]) == strings.ToLower(substring) { // сравниваем слова приведенные к нижнему регистру
 			count++
 		}
 	}
@@ -196,18 +195,18 @@ func invert(arr []string, substring string) (bool, []string) {
 	var index int
 
 	for i := 0; i < len(arr); i++ {
-		if arr[i] == substring {
+		if arr[i] == substring { // нашли искомое слово
 			index = i
 			isFind = true
 		}
 	}
 
-	start := make([]string, len(arr[:index]))
+	start := make([]string, len(arr[:index])) // делим массив на два до и после слова не включая его
 	end := make([]string, len(arr[index+1:]))
-	copy(start, arr[:index])
+	copy(start, arr[:index]) // избавляемся от зависимостей
 	copy(end, arr[index+1:])
 	for j := 0; j < len(end); j++ {
-		start = append(start, end[j])
+		start = append(start, end[j]) // соединяем два массива без найденного слова, для его удаленияя
 	}
 
 	return isFind, start
@@ -220,12 +219,12 @@ func fixed(arr []string, subArr []string) {
 	for i := 0; i < len(arr); i++ {
 		count = 0
 		for j := 0; j < len(subArr); j++ {
-			if arr[i] == subArr[j] {
-				count++
+			if arr[i] == subArr[j] { // поиск всей строки полностью
+				count++ // считаем количество слов
 				i++
 			}
 		}
-		if count == len(subArr) {
+		if count == len(subArr) { // если количество слов совпадает с их количеством в пользовательском вводе
 			fmt.Println("Ваша строка была точно найдена, ее индекс: ", i)
 			break
 		}
@@ -233,7 +232,7 @@ func fixed(arr []string, subArr []string) {
 }
 
 func getLineNumber(arr []byte, substring string) (int, bool) {
-	lines := strings.Split(string(arr), "\n")
+	lines := strings.Split(string(arr), "\n") // делим массив по \n
 	var fieldLines []string
 	isFind := false
 
@@ -241,11 +240,11 @@ func getLineNumber(arr []byte, substring string) (int, bool) {
 	err := false
 
 	for i := 0; i < len(lines); i++ {
-		fieldLines = strings.Fields(lines[i])
+		fieldLines = strings.Fields(lines[i]) // не учитываем пропуски
 		for j := 0; j < len(fieldLines); j++ {
-			if fieldLines[j] == substring {
-				result = i + 1
-				isFind = true
+			if fieldLines[j] == substring { // если найдена строка
+				result = i + 1 //найденный индекс записываем в переменную
+				isFind = true  // нашли слово
 				break
 			}
 		}
