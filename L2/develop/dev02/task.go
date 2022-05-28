@@ -29,31 +29,30 @@ import (
 //3. Ты игнорируешь ошибки через _ - это нельзя делать. Это практически самое ужасное, что ты можешь делать в го. Никогда так не делай.
 //4. for _, word := range str - ты итерируешься по строке. Но word не соответствует тому, что в нем лежит: там не слово.
 
-func unPack(str string) string {
+func unPack(str string) string { // функция развертки данных
 	var memory rune
 	isLetter := false
 	var result string
 
 	strRune := []rune(str)
 
-	for _, element := range strRune {
+	for _, element := range strRune { // проходим по всей руне
 		if unicode.IsDigit(element) && isLetter { // если нынешнее - число, предыдущее - строка
-			number, error := strconv.Atoi(string(element))
+			number, error := strconv.Atoi(string(element)) // переводим строку в число
 			if error != nil {
 				fmt.Println("Error: ", error)
 			}
 			for i := 0; i < number; i++ {
-				result += string(memory)
+				result += string(memory) // печатаем столько раз сколько пользователь ввел
 			}
 		} else if !unicode.IsDigit(element) && isLetter { // если предыдущее - строка , нынешнее - строка
-			result += string(memory)
+			result += string(memory) // просто складываем два элемента в строку
 		} else if unicode.IsDigit(element) && !isLetter { // если предыдущее -число, нынешнее - число
-			result = ""
+			result = "" // не может стоять два числа подряд
 			break
 		}
-
 		memory = element
-		if unicode.IsLetter(memory) {
+		if unicode.IsLetter(memory) { // если нынешнее было числом
 			isLetter = true
 		} else {
 			isLetter = false
@@ -67,7 +66,7 @@ func unPack(str string) string {
 
 func main() {
 	str := "a4bc2d5e"
-	out := unPack(str)
+	out := unPack(str) // распаковка
 
 	fmt.Println(out)
 }
