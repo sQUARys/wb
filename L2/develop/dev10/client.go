@@ -70,35 +70,36 @@ func (srv *Server) setFlags() {
 
 func (srv *Server) onStartProcess(wg *sync.WaitGroup, mut *sync.Mutex) {
 
-	errChan := make(chan error, 1)
-	shutdownCh := make(chan struct{}, 1)
+	errChan := make(chan error, 1)       // создаем канал ошибок
+	shutdownCh := make(chan struct{}, 1) // создаем shutdown канал
 
 	wg.Add(1)
-	go srv.hasConnection(wg, mut)
+	go srv.hasConnection(wg, mut) //запускаем в горутине функцию проверки соединения с сервером
 
 	wg.Add(1)
-	go checkEofError(wg, mut, errChan, shutdownCh)
+	go checkEofError(wg, mut, errChan, shutdownCh) // запускаем в горутине функцию по отслеживанию Ctrl+D
 
-	ctx := context.Background()
-	context, cancelCtx := context.WithTimeout(ctx, time.Duration(srv.timeout)*time.Second)
+	ctx := context.Background() // создаем контекст для таймаута
+
+	context, cancelCtx := context.WithTimeout(ctx, time.Duration(srv.timeout)*time.Second) // создаем контекс с установленным таймаутом
 	defer cancelCtx()
 
 	for {
 		select {
-		case <-context.Done():
+		case <-context.Done(): // если установленное время работы сервера прошло
 			fmt.Println("Timout has finished")
 			return
-		case <-shutdownCh:
+		case <-shutdownCh: // если была нажата клавиша Ctrl+D
 			fmt.Println("Break by Ctrl+D")
 			return
 		default:
-			if srv.isConnected && srv.errorOfConnection == nil {
+			if srv.isConnected && srv.errorOfConnection == nil { // если подключены к серверу
 				reader := bufio.NewReader(os.Stdin) // Чтение входных данных от stdin
 				fmt.Print("Text to send: ")
 				text, err := reader.ReadString('\n') // Отправляем в socket
 
 				if err != nil {
-					errChan <- err
+					errChan <- err // появилась ошибка какая-то, передаем ее в канал ошибок
 					srv.errorOfConnection = err
 					break
 				}
@@ -106,7 +107,7 @@ func (srv *Server) onStartProcess(wg *sync.WaitGroup, mut *sync.Mutex) {
 				connectionWithServer := srv.connection
 				fmt.Fprintf(connectionWithServer, text+"\n") // Прослушиваем ответ
 
-				message, ok := bufio.NewReader(connectionWithServer).ReadString('\n')
+				message, ok := bufio.NewReader(connectionWithServer).ReadString('\n') // считываем ответ
 
 				if ok != nil {
 					fmt.Println("Server has stopped.")
@@ -138,14 +139,14 @@ func checkEofError(wg *sync.WaitGroup, mut *sync.Mutex, c chan error, shutdownCh
 	defer wg.Done()
 
 	isShutdown := false
-	for !isShutdown {
+	for !isShutdown { // пока не Ctrl+D
 		select {
-		case err := <-c:
-			if err == io.EOF {
+		case err := <-c: //считываем канал ошибок
+			if err == io.EOF { // если в канал что-то передали и это было Ctrl+D
 				mut.Lock()
-				shutdownCh <- struct{}{}
+				shutdownCh <- struct{}{} // передаем информацию о завершении программы
 				isShutdown = true
-				close(shutdownCh)
+				close(shutdownCh) // закрываем все каналы
 				close(c)
 				mut.Unlock()
 			}
