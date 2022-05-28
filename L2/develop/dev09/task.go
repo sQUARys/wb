@@ -19,22 +19,23 @@ import (
 */
 
 func main() {
-	site := Site{}
-	site.setFlag()
+	site := Site{} // создаем пустую структуру
+	site.setFlag() // считываем с командной строки
 
 	fmt.Print("\nDownloading file...\n")
 
-	segments := strings.Split(site.URL, "/")
-	fileName := segments[len(segments)-1]
-	file, err := os.Create(fileName)
+	segments := strings.Split(site.URL, "/") // делим URL сайта по /
+	fileName := segments[len(segments)-1]    // записываем имя файла
+	file, err := os.Create(fileName)         // создаем такой файл
 
 	if err != nil {
 		fmt.Println(err)
 		log.Fatalln(err)
 	}
+
 	defer file.Close()
 
-	response, err := http.Get(site.URL)
+	response, err := http.Get(site.URL) // отправляем Get-запрос и принимаем ответ
 
 	if err != nil {
 		fmt.Println(err)
@@ -45,16 +46,16 @@ func main() {
 
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := ioutil.ReadAll(response.Body) // считываем все что вернулось с ответа
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	sb := string(body)
+	sb := string(body) // приводим массив байт к строке
 
-	filesize := response.ContentLength
+	filesize := response.ContentLength // размер файла записываем
 
-	n, error := file.WriteString(sb)
+	n, error := file.WriteString(sb) //записываем в файл данные, которые были переданы
 	if n != int(filesize) {
 		fmt.Println("Truncated")
 	}
