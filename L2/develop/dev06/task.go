@@ -22,24 +22,24 @@ import (
 */
 
 func main() {
-	commands := Command{}
-	commands.setFlags()
+	commands := Command{} // создаем пустую структуру
+	commands.setFlags()   // считываем команды пользователя
 
-	configFile, err := ioutil.ReadFile("data1.txt")
+	configFile, err := ioutil.ReadFile("data1.txt") // считываем данные из файла
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	var configLines []string
 
-	if commands.d != "" {
+	if commands.d != "" { // если пользователь ввел команду d
 		configLines = commands.Delimit(configFile)
 		fmt.Println(configLines)
 	}
-	if commands.f != 0 {
+	if commands.f != 0 { // если пользователь ввел команду f
 		commands.Fields(configLines)
 	}
-	if commands.s {
+	if commands.s { //если пользователь ввел команду s
 		commands.Separated(configFile)
 	}
 
@@ -62,7 +62,7 @@ func (c *Command) Delimit(configFile []byte) []string {
 	fmt.Println("Delimiter...")
 	configLines := strings.Split(string(configFile), c.d) // разделяем каждое слово строки на элементы массива
 	for j := range configLines {
-		fmt.Println(configLines[j])
+		fmt.Println(configLines[j]) // выводим каждое разделенное слово через \n
 	}
 	return configLines
 }
@@ -75,9 +75,9 @@ func (c *Command) Fields(configLines []string) {
 		fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
 		return
 	}
-	for f := range configLines {
-		fields = strings.Fields(configLines[f])
-		fmt.Println(fields[c.f-1])
+	for f := range configLines { // проходим по массиву
+		fields = strings.Fields(configLines[f]) // разделяем по разделителю
+		fmt.Println(fields[c.f-1])              // выводим
 	}
 }
 
@@ -85,8 +85,8 @@ func (c *Command) Separated(configFile []byte) {
 	fmt.Println("Only-delimited...")
 
 	configLines := strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
-	for s := range configLines {
-		if strings.Contains(configLines[s], c.d) {
+	for s := range configLines {                           // проходим по массиву
+		if strings.Contains(configLines[s], c.d) { // если в строке есть разделитель выводим ее
 			fmt.Println(configLines[s])
 		}
 	}
