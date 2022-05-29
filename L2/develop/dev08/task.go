@@ -18,7 +18,7 @@ import (
 Необходимо реализовать собственный шелл
 
 встроенные команды: cd/pwd/echo/kill/ps DONE
-поддержать fork/exec команды not done доделать
+поддержать fork/execBin команды not done доделать
 конвеер на пайпах done
 
 Реализовать утилиту netcat (nc) клиент DONE
@@ -36,10 +36,6 @@ func pwd() string {
 		fmt.Println(err.Error())
 	}
 	return currentDir
-}
-
-func cd(path string) {
-	os.Chdir(path)
 }
 
 func echo(str string) string {
@@ -120,10 +116,13 @@ func main() {
 			res := startBinaryFile("cdBin/cd", path[1])
 			buf.data = append(buf.data, res)
 		}
+
 		if strings.Contains(commands[i], "pwd") {
-			buf.data = append(buf.data, pwd())
+			res := startBinaryFile("pwdBin/pwd", "")
+			buf.data = append(buf.data, res)
 			isTouchedBuf = true
 		}
+
 		if strings.Contains(commands[i], "echo") {
 			if isTouchedBuf {
 				echoArr := strings.Join(buf.data, "")
@@ -143,7 +142,7 @@ func main() {
 		if strings.Contains(commands[i], "ps") {
 			ps()
 		}
-		if strings.Contains(commands[i], "exec") {
+		if strings.Contains(commands[i], "execBin") {
 			var pathToBin string
 			if isTouchedBuf {
 				pathToBin = strings.Join(buf.data, "")
@@ -152,7 +151,7 @@ func main() {
 				isTouchedBuf = true
 			}
 
-			res := startBinaryFile("exec/exec", strings.TrimSpace(pathToBin))
+			res := startBinaryFile("execBin/exec", strings.TrimSpace(pathToBin))
 			buf.data = append(buf.data, res)
 		}
 	}
@@ -160,7 +159,7 @@ func main() {
 	fmt.Println(strings.Join(buf.data, " "))
 }
 
-func startBinaryFile(binPath string, execPath string) string {
+func startBinaryFile(binPath string, data string) string {
 	defaultPath := "/Users/roman/Desktop/Work/WorkRepo/L2/develop/dev08/bin/"
 	cmd := exec.Command(defaultPath + binPath)
 
@@ -171,7 +170,7 @@ func startBinaryFile(binPath string, execPath string) string {
 
 	go func() {
 		defer stdin.Close()
-		io.WriteString(stdin, execPath)
+		io.WriteString(stdin, data)
 	}()
 
 	out, errOut := cmd.CombinedOutput()

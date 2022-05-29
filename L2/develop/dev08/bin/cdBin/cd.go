@@ -16,8 +16,8 @@ func main() {
 		log.Fatal("Error of cd:", err)
 	}
 	currDir, errCurrDir := os.Getwd()
-	if err != nil {
+	if errCurrDir != nil {
 		log.Fatal("Error of cd:", errCurrDir)
 	}
-	fmt.Printf("Succesful. Now you in %s.", currDir)
+	fmt.Printf("Succesful changing. Now you in %s.", currDir)
 }
