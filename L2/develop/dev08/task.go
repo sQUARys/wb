@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
-	"time"
 )
 
 /*
@@ -17,7 +16,7 @@ import (
 
 Необходимо реализовать собственный шелл
 
-встроенные команды: cd/pwd/echo/kill/ps DONE
+встроенные команды: cd/pwd/echo/kill/psBin DONE
 поддержать fork/execBin команды not done доделать
 конвеер на пайпах done
 
@@ -28,36 +27,6 @@ import (
 
 type Buffer struct {
 	data []string
-}
-
-func kill() {
-	cmd := exec.Command("sleep", "5")
-
-	err := cmd.Start()
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	// Wait for the process to finish or kill it after a timeout (whichever happens first):
-	doneCh := make(chan error, 1)
-
-	go func() {
-		doneCh <- cmd.Wait()
-	}()
-
-	select {
-	case <-time.After(7 * time.Second):
-		err := cmd.Process.Kill()
-		if err != nil {
-			log.Fatal("Failed to kill process: ", err)
-		}
-		log.Println("Process killed as timeout reached")
-	case err := <-doneCh:
-		if err != nil {
-			log.Fatalf("Process finished with error = %v", err)
-		}
-		log.Print("Process finished successfully")
-	}
 }
 
 func ps() {
@@ -124,11 +93,12 @@ func main() {
 		}
 
 		if strings.Contains(commands[i], "kill") {
-			res := startBinaryFile("killBin/kill", strings.TrimSpace(echoStr))
+			res := startBinaryFile("killBin/kill", "")
 			fmt.Println(res)
 		}
 		if strings.Contains(commands[i], "ps") {
-			ps()
+			res := startBinaryFile("psBin/ps", "")
+			fmt.Println(res)
 		}
 		if strings.Contains(commands[i], "execBin") {
 			var pathToBin string
