@@ -30,15 +30,6 @@ type Buffer struct {
 	data []string
 }
 
-func echo(str string) string {
-	cmd := exec.Command("echo", str)
-	strOut, err := cmd.Output()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return string(strOut)
-}
-
 func kill() {
 	cmd := exec.Command("sleep", "5")
 
@@ -131,8 +122,10 @@ func main() {
 				isTouchedBuf = true
 			}
 		}
+
 		if strings.Contains(commands[i], "kill") {
-			kill()
+			res := startBinaryFile("killBin/kill", strings.TrimSpace(echoStr))
+			fmt.Println(res)
 		}
 		if strings.Contains(commands[i], "ps") {
 			ps()
