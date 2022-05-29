@@ -16,7 +16,7 @@ import (
 Необходимо реализовать собственный шелл
 
 встроенные команды: cd/pwd/echo/kill/ps DONE
-поддержать fork/exec команды not done доделать
+поддержать fork/exec команды done
 конвеер на пайпах done
 
 Реализовать утилиту netcat (nc) клиент DONE
@@ -66,6 +66,7 @@ func main() {
 		if strings.Contains(commands[i], "echo") {
 			if isTouchedBuf {
 				echoArr := strings.Join(buf.data, "")
+				fmt.Println(echoArr)
 				res := startBinaryFile("echoBin/echo", echoArr)
 				buf.data = append(buf.data, res)
 			} else {
@@ -87,7 +88,8 @@ func main() {
 
 		if strings.Contains(commands[i], "ps") {
 			res := startBinaryFile("psBin/ps", "")
-			fmt.Println(res)
+			buf.data = append(buf.data, res)
+			isTouchedBuf = true
 		}
 
 		if strings.Contains(commands[i], "exec") {
