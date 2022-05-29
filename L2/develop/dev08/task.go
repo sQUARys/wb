@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"syscall"
 )
 
 /*
@@ -16,8 +15,8 @@ import (
 
 Необходимо реализовать собственный шелл
 
-встроенные команды: cd/pwd/echo/kill/psBin DONE
-поддержать fork/execBin команды not done доделать
+встроенные команды: cd/pwd/echo/kill/ps DONE
+поддержать fork/exec команды not done доделать
 конвеер на пайпах done
 
 Реализовать утилиту netcat (nc) клиент DONE
@@ -27,17 +26,6 @@ import (
 
 type Buffer struct {
 	data []string
-}
-
-func ps() {
-	PS, err := exec.LookPath("ps")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(PS)
-	command := []string{"ps", "-a", "-x"}
-	env := os.Environ()
-	err = syscall.Exec(PS, command, env)
 }
 
 func main() {
@@ -96,11 +84,13 @@ func main() {
 			res := startBinaryFile("killBin/kill", "")
 			fmt.Println(res)
 		}
+
 		if strings.Contains(commands[i], "ps") {
 			res := startBinaryFile("psBin/ps", "")
 			fmt.Println(res)
 		}
-		if strings.Contains(commands[i], "execBin") {
+
+		if strings.Contains(commands[i], "exec") {
 			var pathToBin string
 			if isTouchedBuf {
 				pathToBin = strings.Join(buf.data, "")
