@@ -30,14 +30,6 @@ type Buffer struct {
 	data []string
 }
 
-func pwd() string {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return currentDir
-}
-
 func echo(str string) string {
 	cmd := exec.Command("echo", str)
 	strOut, err := cmd.Output()
@@ -126,13 +118,16 @@ func main() {
 		if strings.Contains(commands[i], "echo") {
 			if isTouchedBuf {
 				echoArr := strings.Join(buf.data, "")
-				buf.data = append(buf.data, echo(echoArr))
+				res := startBinaryFile("echoBin/echo", echoArr)
+				buf.data = append(buf.data, res)
 			} else {
 				if strings.Contains(commands[i], "'") {
 					echoStr = strings.Split(commands[i], "'")[1]
+				} else {
+					echoStr = strings.Split(commands[i], " ")[1]
 				}
-				fmt.Println(echo(echoStr))
-				buf.data = append(buf.data, echo(echoStr))
+				res := startBinaryFile("echoBin/echo", strings.TrimSpace(echoStr))
+				buf.data = append(buf.data, res)
 				isTouchedBuf = true
 			}
 		}
@@ -174,11 +169,11 @@ func startBinaryFile(binPath string, data string) string {
 	}()
 
 	out, errOut := cmd.CombinedOutput()
+
 	if errOut != nil {
 		log.Fatal(errOut)
 	}
 
 	cmd.Wait()
 	return string(out)
-
 }
