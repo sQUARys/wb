@@ -7,20 +7,21 @@ import (
 )
 
 func main() {
+
 	foo := 4
 	bar := 10
-	ret, _, err := syscall.Syscall(syscall.SYS_FORK, 0, 0, 0)
+	ret, pid, err := syscall.RawSyscall(syscall.SYS_FORK, 0, 0, 0) // ret - parents pid, pid - child pid
 
 	if err != 0 {
+		fmt.Println(err.Error())
 		os.Exit(2)
 	}
 
-	if ret > 0 {
+	if pid > 0 {
 		bar++
 		fmt.Println("In parent:", ret, foo, bar)
-		return
+	} else { //pid == 0
+		foo++
+		fmt.Println("In child:", pid, foo, bar)
 	}
-
-	foo++
-	fmt.Println("In child:", ret, foo, bar)
 }
