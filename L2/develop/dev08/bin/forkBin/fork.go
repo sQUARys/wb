@@ -8,8 +8,8 @@ import (
 
 func main() {
 
-	foo := 4
-	bar := 10
+	first := 4
+	second := 10
 	ret, pid, err := syscall.RawSyscall(syscall.SYS_FORK, 0, 0, 0) // ret - parents pid, pid - child pid
 
 	if err != 0 {
@@ -18,10 +18,10 @@ func main() {
 	}
 
 	if pid > 0 {
-		bar++
-		fmt.Println("In parent:", ret, foo, bar)
+		second++
+		fmt.Println("In parent:", ret, first, second)
 	} else { //pid == 0
-		foo++
-		fmt.Println("In child:", pid, foo, bar)
+		first++
+		fmt.Println("In child:", pid, first, second)
 	}
 }
