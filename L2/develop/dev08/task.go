@@ -83,7 +83,7 @@ func main() {
 
 		if strings.Contains(commands[i], "kill") {
 			res := startBinaryFile("killBin/kill", "")
-			fmt.Println(res)
+			buf.data = append(buf.data, res)
 		}
 
 		if strings.Contains(commands[i], "ps") {
@@ -104,6 +104,12 @@ func main() {
 			res := startBinaryFile("execBin/exec", strings.TrimSpace(pathToBin))
 			buf.data = append(buf.data, res)
 		}
+
+		if strings.Contains(commands[i], "fork") {
+			res := startBinaryFile("forkBin/fork", "")
+			buf.data = append(buf.data, res)
+		}
+
 	}
 
 	fmt.Println(strings.Join(buf.data, " "))
