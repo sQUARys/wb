@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -113,7 +114,11 @@ func main() {
 	for i := 0; i < len(commands); i++ {
 		if strings.Contains(commands[i], "cd") {
 			path := strings.Split(commands[i], " ")
-			cd(path[1])
+			if len(path) == 1 {
+				log.Fatal("Your cd command don't have an argument")
+			}
+			res := startBinaryFile("cdBin/cd", path[1])
+			buf.data = append(buf.data, res)
 		}
 		if strings.Contains(commands[i], "pwd") {
 			buf.data = append(buf.data, pwd())
@@ -127,6 +132,7 @@ func main() {
 				if strings.Contains(commands[i], "'") {
 					echoStr = strings.Split(commands[i], "'")[1]
 				}
+				fmt.Println(echo(echoStr))
 				buf.data = append(buf.data, echo(echoStr))
 				isTouchedBuf = true
 			}
@@ -137,7 +143,43 @@ func main() {
 		if strings.Contains(commands[i], "ps") {
 			ps()
 		}
+		if strings.Contains(commands[i], "exec") {
+			var pathToBin string
+			if isTouchedBuf {
+				pathToBin = strings.Join(buf.data, "")
+			} else {
+				pathToBin = "ls" // дефолт
+				isTouchedBuf = true
+			}
+
+			res := startBinaryFile("exec/exec", strings.TrimSpace(pathToBin))
+			buf.data = append(buf.data, res)
+		}
 	}
 
 	fmt.Println(strings.Join(buf.data, " "))
+}
+
+func startBinaryFile(binPath string, execPath string) string {
+	defaultPath := "/Users/roman/Desktop/Work/WorkRepo/L2/develop/dev08/bin/"
+	cmd := exec.Command(defaultPath + binPath)
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		defer stdin.Close()
+		io.WriteString(stdin, execPath)
+	}()
+
+	out, errOut := cmd.CombinedOutput()
+	if errOut != nil {
+		log.Fatal(errOut)
+	}
+
+	cmd.Wait()
+	return string(out)
+
 }
