@@ -15,8 +15,8 @@ func Foo() error {
 
 func main() {
 	err := Foo()
-	fmt.Println(err)
-	fmt.Println(err == nil)
+	fmt.Println(err) // type(err) = *fs.PathError 
+	fmt.Println(err == nil) // type(nil) = <nil>
 }
 ```
 
