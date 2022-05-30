@@ -38,26 +38,6 @@ start := time.Now()
 fmt.Printf(“fone after %v”, time.Since(start))
 */
 
-func or(channels ...<-chan interface{}) <-chan interface{} {
-	doneCh := make(chan interface{}) // создаем канал который передает интерфейсы
-
-	switch len(channels) { // в зависимости от количества каналов делаем:
-	case 0: // если каналов нет
-		return nil
-	case 1: // если единственный канал
-		return channels[0]
-	default: // если больше чем 1 канал
-		go func(ch chan interface{}) { // запускаем горутину
-			defer close(doneCh) // в конце закроем канал
-			select {
-			case <-channels[0]: //считываем из первого канала
-			case <-or(append(channels[1:])...): // рекурсивно запускаем все кроме первого каналы
-			}
-		}(doneCh) // передаем done канал
-	}
-	return doneCh
-}
-
 func main() {
 
 	sig := func(after time.Duration) <-chan interface{} { // запускаем функцию по засеканию времени
@@ -78,4 +58,24 @@ func main() {
 	)
 	fmt.Printf("Done after %v", time.Since(start))
 
+}
+
+func or(channels ...<-chan interface{}) <-chan interface{} {
+	doneCh := make(chan interface{}) // создаем канал который передает интерфейсы
+
+	switch len(channels) { // в зависимости от количества каналов делаем:
+	case 0: // если каналов нет
+		return nil
+	case 1: // если единственный канал
+		return channels[0]
+	default: // если больше чем 1 канал
+		go func(ch chan interface{}) { // запускаем горутину
+			defer close(doneCh) // в конце закроем канал
+			select {
+			case <-channels[0]: //считываем из первого канала
+			case <-or(append(channels[1:])...): // рекурсивно запускаем все кроме первого каналы
+			}
+		}(doneCh) // передаем done канал
+	}
+	return doneCh
 }
