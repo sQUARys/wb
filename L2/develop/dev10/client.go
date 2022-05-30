@@ -139,7 +139,7 @@ func checkEofError(wg *sync.WaitGroup, mut *sync.Mutex, c chan error, shutdownCh
 	defer wg.Done()
 
 	isShutdown := false
-	for !isShutdown { // пока не Ctrl+D
+	for !isShutdown { // пока не нажато Ctrl+D
 		select {
 		case err := <-c: //считываем канал ошибок
 			if err == io.EOF { // если в канал что-то передали и это было Ctrl+D
