@@ -37,10 +37,12 @@ func main() {
 		fmt.Println(configLines)
 	}
 	if commands.f != 0 { // если пользователь ввел команду f
-		commands.Fields(configLines)
+		ret := commands.Fields(configLines)
+		fmt.Println(ret)
 	}
 	if commands.s { //если пользователь ввел команду s
-		commands.Separated(configFile)
+		ret := commands.Separated(configFile)
+		fmt.Println(ret)
 	}
 
 }
@@ -61,33 +63,35 @@ func (c *Command) setFlags() {
 func (c *Command) Delimit(configFile []byte) []string {
 	fmt.Println("Delimiter...")
 	configLines := strings.Split(string(configFile), c.d) // разделяем каждое слово строки на элементы массива
-	for j := range configLines {
-		fmt.Println(configLines[j]) // выводим каждое разделенное слово через \n
-	}
 	return configLines
 }
 
-func (c *Command) Fields(configLines []string) {
+func (c *Command) Fields(configLines []string) []string {
 	fmt.Println("Fields...")
 	var fields []string
+	var result []string
 
-	if c.f >= len(configLines) {
-		fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
-		return
-	}
 	for f := range configLines { // проходим по массиву
 		fields = strings.Fields(configLines[f]) // разделяем по разделителю
-		fmt.Println(fields[c.f-1])              // выводим
+		if c.f > len(fields) {
+			fmt.Println("Вы ввели поле, которое выходит за границы строк. Введите пожалуйста значение поменьше")
+			return []string{}
+		}
+		result = append(result, fields[c.f-1]) // выводим
 	}
+	return result
 }
 
-func (c *Command) Separated(configFile []byte) {
+func (c *Command) Separated(configFile []byte) []string {
 	fmt.Println("Only-delimited...")
+
+	result := []string{}
 
 	configLines := strings.Split(string(configFile), "\n") // разделяем каждое слово строки на элементы массива
 	for s := range configLines {                           // проходим по массиву
 		if strings.Contains(configLines[s], c.d) { // если в строке есть разделитель выводим ее
-			fmt.Println(configLines[s])
+			result = append(result, configLines[s])
 		}
 	}
+	return result
 }
