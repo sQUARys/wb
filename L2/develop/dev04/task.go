@@ -28,12 +28,20 @@ import (
 var mapForAnagram DefMap
 
 func main() {
-	in := []string{"пятак", "актяп", "тяпка", "тяпка"}
+	in := []string{"Пятак", "актяп", "тяпка", "тяпка"}
+	in = toLowRegister(in)
 	fmt.Println(uploadMap(in))
 }
 
 type DefMap struct { // структура хранящая в себе мапу
 	m map[string][]string
+}
+
+func toLowRegister(arr []string) []string {
+	for i := range arr {
+		arr[i] = strings.ToLower(arr[i])
+	}
+	return arr
 }
 
 func uploadMap(arr []string) map[string][]string { // построение карты анаграмм
