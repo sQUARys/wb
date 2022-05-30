@@ -103,13 +103,18 @@ func sortBySpecialColumn(sl []string, k int) []string {
 
 func sortByNumber(sl []string) []string {
 	sort.Slice(sl, func(i, j int) bool {
+		if sl[i] == "" || sl[j] == "" {
+			return true
+		}
 		val1, error := strconv.Atoi(sl[i]) // переводим первую строку в число
 		if error != nil {
 			fmt.Println("Error: ", error)
+			return true
 		}
 		val2, err := strconv.Atoi(sl[j]) // переводим вторую строку в число
 		if err != nil {
 			fmt.Println("Error: ", err)
+			return true
 		}
 		return val1 < val2
 	})

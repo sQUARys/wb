@@ -31,7 +31,7 @@ var testsRevers = []testPair{
 
 var testSortByNumbers = []testPair{
 	{[]string{"1", "2", "3"}, -1, []string{"1", "2", "3"}},
-	{[]string{"", "10", "-1", "2"}, -1, []string{"-1", "", "2", "10"}},
+	{[]string{"", "10", "-1", "2"}, -1, []string{"-1", "2", "10", ""}},
 	{[]string{"0", "0", "0", "5", "-5"}, -1, []string{"-5", "0", "0", "0", "5"}},
 	{[]string{""}, -1, []string{""}},
 }
