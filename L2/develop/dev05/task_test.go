@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -79,7 +78,6 @@ func isSimilar(sl1 []string, sl2 []string) bool {
 func TestAfter(t *testing.T) {
 	for _, test := range testForAfter {
 		ret := after(test.input, test.subString, subArrRight)
-		fmt.Println(ret, test.result, isSimilar(ret, test.result))
 		if !isSimilar(ret, test.result) {
 			t.Error(
 				"For", test.input,
